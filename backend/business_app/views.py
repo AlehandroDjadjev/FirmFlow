@@ -36,3 +36,11 @@ class DocumentUploadView(generics.CreateAPIView):
     def perform_create(self, serializer):
         """Override the perform_create method to assign the user automatically."""
         serializer.save(user=self.request.user)  # Assign the current logged-in user to the document
+
+    def delete(self, request, document_id):
+        """Delete a document by ID (only if owned by the user)."""
+        document = get_object_or_404(Document, id=document_id, user=request.user)
+
+        document.delete()
+        return Response({"message": "Document deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
+

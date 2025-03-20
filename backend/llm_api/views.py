@@ -6,7 +6,14 @@ from django.views.decorators.csrf import csrf_exempt
 from openai import OpenAI
 from dotenv import load_dotenv
 from typing import List
-from .models import AIInteraction
+from .models import AIInteraction, Document
+from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from .models import Firm, MainDocument
 
 # Load environment variables
 load_dotenv()
@@ -41,24 +48,43 @@ def get_last_interactions(n=10):
 
 
 @csrf_exempt
-def submit_prompt(request):
+def submit_prompt(request, firm_id):
     """Handles user prompt submission, interacts with OpenAI, and stores the response."""
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             user_prompt = data.get("prompt", "").strip()
+            save_as_document = data.get("save_as_document", False)
+            document_id = data.get("document_id", None)
 
             if not user_prompt:
                 return JsonResponse({"error": "Prompt cannot be empty"}, status=400)
 
-            # Retrieve system prompt and last 10 interactions
-            system_prompt = get_system_prompt()
-            conversation_history = get_last_interactions()
+            # Retrieve the firm and its main document
+            firm = get_object_or_404(Firm, id=firm_id)
+            main_document = MainDocument.objects.filter(firm=firm).first()
+            main_document_text = main_document.text if main_document else ""
+
+            # Retrieve extra document if `document_id` is provided
+            document_context = ""
+            if document_id:
+                document = get_object_or_404(Document, id=document_id)
+                document_context = f"\n\n### Additional Context from Document '{document.title}' ###\n{document.text}"
+
+            # Retrieve last 10 interactions
+            conversation_history = "\n".join(
+                [f"User: {i.user_prompt}\nAI: {i.ai_response}" for i in 
+                 AIInteraction.objects.filter(firm=firm).order_by("-created_at")[:10]]
+            )
+
+            # Merge system prompt, firm main document, additional document & conversation history
+            full_system_prompt = (
+                f"{main_document_text}{document_context}\n\n### Previous Interactions ###\n{conversation_history}"
+            )
 
             # Construct the message for OpenAI
             messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "system", "content": conversation_history},
+                {"role": "system", "content": full_system_prompt},
                 {"role": "user", "content": user_prompt}
             ]
 
@@ -70,8 +96,17 @@ def submit_prompt(request):
 
             ai_response = response.choices[0].message.content.strip()
 
-            # Save to database
-            AIInteraction.objects.create(user_prompt=user_prompt, ai_response=ai_response)
+            # Save interaction
+            AIInteraction.objects.create(firm=firm, user_prompt=user_prompt, ai_response=ai_response)
+
+            # Save response as a document if requested
+            if save_as_document:
+                document = Document.objects.create(
+                    firm=firm,
+                    title=f"AI Response for {firm.name}",
+                    text=ai_response
+                )
+                return JsonResponse({"response": ai_response, "document_id": document.id, "message": "Response saved as document."})
 
             return JsonResponse({"response": ai_response})
 
@@ -80,18 +115,54 @@ def submit_prompt(request):
 
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
-@csrf_exempt
-def get_saved_interactions(request):
-    """Retrieve the last 10 AI interactions from the database."""
-    interactions = AIInteraction.objects.all().order_by("-created_at")[:10]
 
-    response_data = [
-        {
-            "user_prompt": interaction.user_prompt,
-            "ai_response": interaction.ai_response,
-            "created_at": interaction.created_at.strftime("%Y-%m-%d %H:%M:%S")
-        }
-        for interaction in interactions
-    ]
 
-    return JsonResponse({"saved_interactions": response_data})
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def initialize_firm(request):
+    """Creates a new firm and generates a PLAN document"""
+    try:
+        data = json.loads(request.body)
+        firm_name = data.get("name", "").strip()
+
+        if not firm_name:
+            return Response({"error": "Firm name is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create Firm
+        firm = Firm.objects.create(name=firm_name)
+
+        # Generate a PLAN for the firm
+        file_path = os.path.join(settings.BASE_DIR, "prompts", "systemPrompt.txt")
+
+        if not os.path.exists(file_path):
+            return "System prompt file not found."
+
+        with open(file_path, "r", encoding="utf-8") as f:
+             system_prompt =f.read().strip()
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Generate a PLAN for the firm: {firm_name}"}
+        ]
+
+        response = openai_client.chat.completions.create(
+            model=GPT_MODEL,
+            messages=messages,
+            temperature=0.1
+        )
+        plan_text = response.choices[0].message.content.strip()
+
+        # Store the PLAN in `MainDocuments`
+        MainDocument.objects.create(firm=firm, text=plan_text)
+
+        return Response({"firm_id": firm.id, "plan": plan_text}, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_firms(request):
+    """Returns all firms"""
+    firms = Firm.objects.all().values("id", "name", "created_at")
+    return Response({"firms": list(firms)})
