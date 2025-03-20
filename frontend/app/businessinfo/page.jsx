@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 
 export default function BusinessInfoPage() {
   const [text, setText] = useState("");
-  const [buttonClicked, setButtonClicked] = useState(false);
   const router = useRouter();
 
   const handleTextChange = (e) => {
@@ -18,41 +17,57 @@ export default function BusinessInfoPage() {
     .filter((word) => word.length > 0).length;
 
   const handleButtonClick = () => {
-    setButtonClicked(true);
     if (wordCount <= 500) {
       router.push("/businesstats");
     }
   };
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen bg-black font-sans relative min-h-screen bg-[url('/background.jpg')] bg-cover bg-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" />
-
-      <div className="relative mb-5 text-2xl text-white font-semibold z-10">
-        Опиши бизнеса си в 0-500 думи
-      </div>
-
-      <div className="relative w-96 z-10">
-        <textarea
-          className="w-full h-36 p-2 text-lg text-white bg-black/50 rounded-lg shadow-sm resize-none transition-all duration-300 ease-in-out focus:border-blue-500 focus:shadow-lg"
-          placeholder="Пиши тук..."
-          value={text}
-          onChange={handleTextChange}
-        ></textarea>
-        <div className="absolute bottom-2 right-2 text-gray-200 transition-all duration-300 ease-in-out">
-          {wordCount}/500
+    <div className="flex min-h-screen">
+      {/* Left Side - Full Width Input */}
+      <div className="w-1/2 min-h-screen flex flex-col justify-center px-20 bg-[#0a0a0a]">
+        <h2 className="text-3xl font-semibold text-white mb-6">
+          Опиши бизнеса си в 0-500 думи
+        </h2>
+        <div className="relative">
+          <textarea
+            className="w-full h-52 p-4 text-white bg-[#0e0e0e] border border-[#1a1a1a] rounded-lg focus:ring-2 focus:ring-[#222] focus:outline-none resize-none transition-all duration-300"
+            placeholder="Пиши тук..."
+            value={text}
+            onChange={handleTextChange}
+          ></textarea>
+          <span className="absolute top-2 right-3 text-sm text-[#666]">
+            {wordCount}/500
+          </span>
         </div>
+        <button
+          onClick={handleButtonClick}
+          className={`mt-6 w-full py-3 text-lg font-medium rounded-lg transition-all duration-300 ${
+            wordCount > 500
+              ? "bg-[#222] text-[#555] cursor-not-allowed"
+              : "bg-[#181818] cursor-pointer text-white hover:bg-[#292929]"
+          }`}
+          disabled={wordCount > 500}
+        >
+          Продължи
+        </button>
       </div>
 
-      <button
-        onClick={handleButtonClick}
-        className={`mt-4 bg-gray-700 cursor-pointer hover:bg-gray-500 transition-all duration-300 text-white px-4 py-2 rounded-xl transform hover:scale-105 ${
-          wordCount > 500 ? "opacity-50 cursor-not-allowed" : ""
-        }`}
-        disabled={wordCount > 500}
-      >
-        Продължи
-      </button>
+      {/* Right Side - Text Content */}
+      <div className="w-1/2 min-h-screen flex flex-col justify-center px-20 bg-[#111] text-white">
+        <h2 className="text-2xl font-bold mb-4">Защо е важно?</h2>
+        <p className="text-lg text-[#ddd] leading-relaxed">
+          Описанието на бизнеса ти помага на клиентите да разберат какво
+          предлагаш. Колкото по-ясно и точно е описанието, толкова по-лесно ще
+          достигнеш до правилните хора.
+        </p>
+        <h3 className="mt-6 text-xl font-semibold">Съвети:</h3>
+        <ul className="list-disc pl-6 text-lg text-[#bbb]">
+          <li>Бъди ясен и точен</li>
+          <li>Използвай ключови думи</li>
+          <li>Опиши уникалността на бизнеса си</li>
+        </ul>
+      </div>
     </div>
   );
 }

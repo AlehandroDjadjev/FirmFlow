@@ -1,32 +1,33 @@
-import React, { useState, useEffect, useRef } from 'react';
+"use client";
+import React, { useState, useEffect, useRef } from "react";
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const messageEndRef = useRef(null);
 
   const sendMessage = async () => {
-    if (input.trim() === '') return;
+    if (input.trim() === "") return;
 
-    const userMessage = { sender: 'user', text: input };
+    const userMessage = { sender: "user", text: input };
     setMessages((prev) => [...prev, userMessage]);
 
-    setInput('');
+    setInput("");
 
-    const res = await fetch('/api/chat/respond', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("/api/chat/respond", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content: input }),
     });
 
     const data = await res.json();
-    const aiMessage = { sender: 'ai', text: data.reply };
+    const aiMessage = { sender: "ai", text: data.reply };
 
     setMessages((prev) => [...prev, aiMessage]);
   };
 
   useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   return (
@@ -35,9 +36,13 @@ export default function ChatInterface() {
         {messages.map((msg, index) => (
           <div
             key={index}
-            className={`my-2 p-2 rounded-md ${msg.sender === 'user' ? 'bg-blue-100 self-end' : 'bg-gray-100 self-start'}`}
+            className={`my-2 p-2 rounded-md ${
+              msg.sender === "user"
+                ? "bg-blue-100 self-end"
+                : "bg-gray-100 self-start"
+            }`}
           >
-            <strong>{msg.sender === 'user' ? 'Вие' : 'AI Асистент'}</strong>
+            <strong>{msg.sender === "user" ? "Вие" : "AI Асистент"}</strong>
             <p>{msg.text}</p>
           </div>
         ))}
@@ -51,7 +56,7 @@ export default function ChatInterface() {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Напишете вашето съобщение..."
           className="border border-gray-300 rounded-md flex-grow p-2"
-          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
         />
         <button
           onClick={sendMessage}
