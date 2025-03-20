@@ -5,15 +5,21 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.core.exceptions import ValidationError
-from .serializers import DocumentSerializer
+
+from .serializers import DocumentSerializer, BusinessSerializer, InteractionSerializer
+
+
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from .models import Document
+from .models import Document, Business, Interaction
+from openai import OpenAI
+from dotenv import load_dotenv
 import os
 import json
 from django.conf import settings
+
     
 class DocumentUploadView(generics.CreateAPIView):
     queryset = Document.objects.all()  # The queryset is required for the `CreateAPIView`
