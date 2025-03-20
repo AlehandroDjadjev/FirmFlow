@@ -17,21 +17,24 @@ export default function BusinessFuturePage() {
     .split(/\s+/)
     .filter((word) => word.length > 0).length;
 
-  const handleButtonClick = (e) => {
+  const handleButtonClick = () => {
     setButtonClicked(true);
     if (wordCount <= 500) {
-      router.push("/completionpage"); // You can change this to the final page you want to redirect to
+      router.push("/completionpage");
     }
   };
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen bg-black font-sans">
-      <div className="mb-5 text-2xl text-gray-200 font-semibold">
+    <div className="flex flex-col justify-center items-center h-screen font-sans relative min-h-screen bg-[url('/background.jpg')] bg-cover bg-center">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
+
+      <div className="relative mb-5 text-2xl text-white font-semibold z-10 text-center">
         Опиши бъдещето, което искаш за бизнеса си
       </div>
-      <div className="relative w-96">
+
+      <div className="relative w-96 z-10">
         <textarea
-          className="w-full h-36 p-2 text-lg text-white rounded-lg border border-gray-300 shadow-sm resize-none transition-all duration-300 ease-in-out focus:border-blue-500 focus:shadow-lg"
+          className="w-full h-36 p-2 text-lg text-white bg-black/50 rounded-lg border border-gray-300 shadow-sm resize-none transition-all duration-300 ease-in-out focus:border-blue-500 focus:shadow-lg"
           placeholder="Пиши тук..."
           value={text}
           onChange={handleTextChange}
@@ -40,9 +43,16 @@ export default function BusinessFuturePage() {
           {wordCount}/500
         </div>
       </div>
+
+      {buttonClicked && wordCount > 500 && (
+        <div className="mt-2 text-red-500 transition-opacity duration-300 ease-in-out opacity-100 animate-bounce z-10">
+          Максималният брой думи е 500
+        </div>
+      )}
+
       <button
         onClick={handleButtonClick}
-        className={`bg-gray-700 hover:bg-gray-500 transition-all duration-300 text-white px-4 py-2 rounded-xl transform hover:scale-105 ${
+        className={`mt-4 bg-gray-700 cursor-pointer hover:bg-gray-500 transition-all duration-300 text-white px-4 py-2 rounded-xl transform hover:scale-105 ${
           wordCount > 500 ? "opacity-50 cursor-not-allowed" : ""
         }`}
         disabled={wordCount > 500}

@@ -17,7 +17,7 @@ export default function BusinessInfoPage() {
     .split(/\s+/)
     .filter((word) => word.length > 0).length;
 
-  const handleButtonClick = (e) => {
+  const handleButtonClick = () => {
     setButtonClicked(true);
     if (wordCount <= 500) {
       router.push("/businesstats");
@@ -25,13 +25,16 @@ export default function BusinessInfoPage() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen bg-black font-sans">
-      <div className="mb-5 text-2xl text-gray-200 font-semibold">
+    <div className="flex flex-col justify-center items-center h-screen bg-black font-sans relative min-h-screen bg-[url('/background.jpg')] bg-cover bg-center">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
+
+      <div className="relative mb-5 text-2xl text-white font-semibold z-10">
         Опиши бизнеса си в 0-500 думи
       </div>
-      <div className="relative w-96">
+
+      <div className="relative w-96 z-10">
         <textarea
-          className="w-full h-36 p-2 text-lg text-white rounded-lg border border-gray-300 shadow-sm resize-none transition-all duration-300 ease-in-out focus:border-blue-500 focus:shadow-lg"
+          className="w-full h-36 p-2 text-lg text-white bg-black/50 rounded-lg border border-gray-300 shadow-sm resize-none transition-all duration-300 ease-in-out focus:border-blue-500 focus:shadow-lg"
           placeholder="Пиши тук..."
           value={text}
           onChange={handleTextChange}
@@ -40,9 +43,10 @@ export default function BusinessInfoPage() {
           {wordCount}/500
         </div>
       </div>
+
       <button
         onClick={handleButtonClick}
-        className={`bg-gray-700 hover:bg-gray-500 transition-all duration-300 text-white px-4 py-2 rounded-xl transform hover:scale-105 ${
+        className={`mt-4 bg-gray-700 cursor-pointer hover:bg-gray-500 transition-all duration-300 text-white px-4 py-2 rounded-xl transform hover:scale-105 ${
           wordCount > 500 ? "opacity-50 cursor-not-allowed" : ""
         }`}
         disabled={wordCount > 500}

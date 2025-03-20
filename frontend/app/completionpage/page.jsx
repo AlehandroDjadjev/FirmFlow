@@ -7,20 +7,24 @@ export default function FinalPage() {
   const router = useRouter();
 
   const handleGoHome = () => {
-    router.push("/home"); // Redirect to homepage
+    router.push("/home");
   };
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen bg-black font-sans">
-      <div className="text-2xl text-gray-200 font-semibold">
+    <div className="flex flex-col justify-center items-center h-screen font-sans relative min-h-screen bg-[url('/background.jpg')] bg-cover bg-center">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
+
+      <div className="relative text-2xl text-white font-semibold z-10 text-center">
         Благодарим ви за попълването!
       </div>
-      <div className="mt-5 text-lg text-gray-400">
+
+      <div className="relative mt-5 text-lg text-gray-300 z-10 text-center">
         Вашето описание е успешно подадено.
       </div>
+
       <button
         onClick={handleGoHome}
-        className="mt-5 bg-gray-700 hover:bg-gray-500 transition-all duration-300 text-white px-4 py-2 rounded-xl transform hover:scale-105"
+        className="relative mt-5 bg-gray-700 cursor-pointer hover:bg-gray-500 transition-all duration-300 text-white px-4 py-2 rounded-xl transform hover:scale-105 z-10"
       >
         Виж всички бизнеси
       </button>

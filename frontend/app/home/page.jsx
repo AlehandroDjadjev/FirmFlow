@@ -6,24 +6,26 @@ import Link from "next/link";
 export default function HomePage() {
   const [businesses, setBusinesses] = useState([]);
 
-  // Simulating fetching businesses from localStorage or an API
   useEffect(() => {
-    // Example: Loading some dummy businesses
     const savedBusinesses =
       JSON.parse(localStorage.getItem("businesses")) || [];
     setBusinesses(savedBusinesses);
   }, []);
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen bg-black font-sans">
-      <div className="mb-5 text-2xl text-gray-200 font-semibold">
+    <div className="flex flex-col justify-center items-center h-screen font-sans relative min-h-screen bg-[url('/background.jpg')] bg-cover bg-center">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
+
+      <div className="relative text-2xl text-white font-semibold z-10">
         Всички мои проекти
       </div>
 
       {businesses.length === 0 ? (
-        <div className="text-gray-400">Нямате добавени проекти.</div>
+        <div className="relative text-gray-300 z-10 mt-2">
+          Нямате добавени проекти.
+        </div>
       ) : (
-        <div className="space-y-4">
+        <div className="relative space-y-4 z-10 mt-4">
           {businesses.map((business, index) => (
             <div
               key={index}
@@ -37,7 +39,7 @@ export default function HomePage() {
       )}
 
       <Link href="/businessinfo">
-        <button className="mt-5 bg-gray-700 hover:bg-gray-500 transition-all duration-300 text-white px-4 py-2 rounded-xl transform hover:scale-105">
+        <button className="relative mt-5 cursor-pointer bg-gray-700 hover:bg-gray-500 transition-all duration-300 text-white px-4 py-2 rounded-xl transform hover:scale-105 z-10">
           Добави нов проект
         </button>
       </Link>
