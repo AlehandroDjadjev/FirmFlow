@@ -26,7 +26,7 @@ export default function BusinessInfoPage() {
 
   return (
     <div className="flex flex-col justify-center items-center h-screen font-sans relative min-h-screen bg-[url('/background.jpg')] bg-cover bg-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" />
 
       <div className="relative mb-5 text-2xl text-white font-semibold z-10 text-center">
         Опиши мащаба на бизнеса (бюджет, екип, желана печалба и т.н.)
