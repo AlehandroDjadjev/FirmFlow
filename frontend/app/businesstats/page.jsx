@@ -34,7 +34,7 @@ export default function BusinessInfoPage() {
 
       <div className="relative w-96 z-10">
         <textarea
-          className="w-full h-36 p-2 text-lg text-white bg-black/50 rounded-lg border border-gray-300 shadow-sm resize-none transition-all duration-300 ease-in-out focus:border-blue-500 focus:shadow-lg"
+          className="w-full h-36 p-2 text-lg text-white bg-black/50 rounded-lg shadow-sm resize-none transition-all duration-300 ease-in-out focus:border-blue-500 focus:shadow-lg"
           placeholder="Пиши тук..."
           value={text}
           onChange={handleTextChange}

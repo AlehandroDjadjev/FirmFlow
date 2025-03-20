@@ -14,7 +14,7 @@ export default function Hero() {
             Имате идея за бизнес, но не знаете откъде да започнете?
           </h2>
           <div className="flex gap-6 flex-wrap justify-center mt-8">
-            <div className="relative border border-white w-40 h-40 flex items-center justify-center bg-gray-400/80 rounded-full text-center transition-all duration-300 hover:bg-gray-700 hover:text-white group">
+            <div className="relative w-40 h-40 flex items-center justify-center bg-gray-400/80 rounded-full text-center transition-all duration-300 hover:bg-gray-700 hover:text-white group">
               <span className="absolute inset-0 flex items-center justify-center text-4xl group-hover:hidden">
                 📜
               </span>
@@ -22,7 +22,7 @@ export default function Hero() {
                 Генерирайте детайлен бизнес план само с няколко клика.
               </span>
             </div>
-            <div className="relative border border-white w-40 h-40 flex items-center justify-center bg-gray-400/80 rounded-full text-center transition-all duration-300 hover:bg-gray-700 hover:text-white group">
+            <div className="relative w-40 h-40 flex items-center justify-center bg-gray-400/80 rounded-full text-center transition-all duration-300 hover:bg-gray-700 hover:text-white group">
               <span className="absolute inset-0 flex items-center justify-center text-4xl group-hover:hidden">
                 📂
               </span>
@@ -30,7 +30,7 @@ export default function Hero() {
                 Качвайте документи и получавайте персонализирани анализи.
               </span>
             </div>
-            <div className="relative border border-white w-40 h-40 flex items-center justify-center bg-gray-400/80 rounded-full text-center transition-all duration-300 hover:bg-gray-700 hover:text-white group">
+            <div className="relative w-40 h-40 flex items-center justify-center bg-gray-400/80 rounded-full text-center transition-all duration-300 hover:bg-gray-700 hover:text-white group">
               <span className="absolute inset-0 flex items-center justify-center text-4xl group-hover:hidden">
                 ❓
               </span>
@@ -39,7 +39,7 @@ export default function Hero() {
                 време.
               </span>
             </div>
-            <div className="relative border border-white w-40 h-40 flex items-center justify-center bg-gray-400/80 rounded-full text-center transition-all duration-300 hover:bg-gray-700 hover:text-white group">
+            <div className="relative w-40 h-40 flex items-center justify-center bg-gray-400/80 rounded-full text-center transition-all duration-300 hover:bg-gray-700 hover:text-white group">
               <span className="absolute inset-0 flex items-center justify-center text-4xl group-hover:hidden">
                 📑
               </span>
