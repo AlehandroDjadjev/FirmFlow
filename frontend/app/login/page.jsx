@@ -36,7 +36,7 @@ export default function Login() {
       localStorage.setItem("refresh", data.refresh);
 
       // Redirect user to a protected page (e.g., dashboard)
-      router.push("/home");
+      router.push("/");
     } catch (err) {
       setError(err.message);
     }
