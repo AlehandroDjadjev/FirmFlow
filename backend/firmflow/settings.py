@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'business_app',
+    'llm_api',
 ]
 
 REST_FRAMEWORK = {
@@ -147,6 +148,16 @@ import os
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),  # Adjust access token lifespan
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),  # Adjust refresh token lifespan
+    "ROTATE_REFRESH_TOKENS": True,  # Optional: Issue a new refresh token with each refresh
+    "BLACKLIST_AFTER_ROTATION": True,  # Optional: Blacklist old refresh tokens
+    "AUTH_HEADER_TYPES": ("Bearer",),  # Prefix for Authorization header
+}
 
 # Ensure the media directory exists
 if not os.path.exists(MEDIA_ROOT):

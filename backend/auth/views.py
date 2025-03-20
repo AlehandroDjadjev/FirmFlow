@@ -3,8 +3,9 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer, CustomTokenObtainSerializer
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -23,3 +24,6 @@ class LogoutView(APIView):
         except Exception:
             return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
 
+
+class CustomTokenObtainView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainSerializer
