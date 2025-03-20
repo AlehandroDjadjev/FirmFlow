@@ -14,29 +14,31 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting login..."); // Debugging
-
+    console.log("Submitting login...");
+  
     setError(null); // Reset errors
-
+  
     try {
       const response = await fetch("http://localhost:8000/auth/login/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
+  
       const data = await response.json();
-
+  
       if (!response.ok) {
         throw new Error(data.detail || "Login failed");
       }
-
+  
+      console.log("Login success:", data); // Log response to check tokens
+  
       // Save tokens in localStorage
       localStorage.setItem("access", data.access);
       localStorage.setItem("refresh", data.refresh);
-
+  
       // Redirect user to a protected page (e.g., dashboard)
-      router.push("/");
+      router.push("/"); // Or wherever you want to redirect
     } catch (err) {
       setError(err.message);
     }

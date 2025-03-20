@@ -14,30 +14,32 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  console.log("Submitting form..."); // Debugging
+    console.log("Submitting form..."); // Debugging
 
-  setError(null); // Reset errors
+    setError(null); // Reset errors
 
-  try {
-    const response = await fetch("http://localhost:8000/auth/signup/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+    try {
+      const response = await fetch("http://localhost:8000/auth/signup/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-    if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.detail || "Signup failed");
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || "Signup failed");
+      }
+
+      const data = await response.json(); // Get the response data here
+
+      // Save tokens in localStorage
+      localStorage.setItem("access", data.access);
+      localStorage.setItem("refresh", data.refresh);
+
+      router.push("/login"); // Redirect to login page on success
+    } catch (err) {
+      setError(err.message);
     }
-
-    // Save tokens in localStorage
-    localStorage.setItem("access", data.access);
-    localStorage.setItem("refresh", data.refresh);
-
-    router.push("/login"); // Redirect to login page on success
-  } catch (err) {
-    setError(err.message);
-  }
   };
 
   return (
@@ -95,4 +97,3 @@ export default function Signup() {
     </div>
   );
 }
-

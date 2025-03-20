@@ -1,31 +1,53 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import jwt_decode from "jwt-decode";  // Import jwt_decode
+import { PaperClipIcon, FolderIcon, QuestionMarkCircleIcon, DocumentTextIcon } from "@heroicons/react/24/outline"; // Import icons
 
 export default function Hero() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
 
   // Check authentication on mount
   useEffect(() => {
     const token = localStorage.getItem("access");
+
     if (token) {
       try {
-        const decoded = jwt_decode(token);  // Decode the token
-        const isExpired = decoded.exp * 1000 < Date.now();  // Check if the token is expired
+        const isExpired = checkTokenExpiration(token);
+
         if (!isExpired) {
-          setIsAuthenticated(true);  // Set to true if token is valid
+          setIsAuthenticated(true);  // If token is valid, set authentication
         } else {
           localStorage.removeItem("access");  // Remove expired token
+          setIsAuthenticated(false);
+          router.push("/signup");  // Redirect to signup if the token expired
         }
       } catch (error) {
-        console.error("Error decoding token:", error);  // Handle decoding errors
+        console.error("Error decoding token:", error);
+        setIsAuthenticated(false);
+        router.push("/signup");  // Redirect to signup if token validation failed
       }
+    } else {
+      setIsAuthenticated(false);
+      router.push("/signup");  // Redirect to signup if no token exists
     }
   }, []);  // Runs once on component mount
 
+  // Function to decode JWT token and check expiration
+  const checkTokenExpiration = (token) => {
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+      throw new Error("Invalid token format");
+    }
+
+    const payload = JSON.parse(atob(parts[1]));  // Decode base64 payload
+    const expirationTime = payload.exp * 1000;  // Convert to milliseconds
+    return expirationTime < Date.now();
+  };
+
   return (
-    <div className="relative min-h-screen bg-black text-white flex flex-col items-center justify-center px-6">
+    <div className="relative min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center px-6">
       {/* Background Blur Effect */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-md" />
 
@@ -41,13 +63,23 @@ export default function Hero() {
 
         {/* Features Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 justify-center">
-          {[
-            { icon: "📜", text: "Генерирайте детайлен бизнес план само с няколко клика." },
-            { icon: "📂", text: "Качвайте документи и получавайте персонализирани анализи." },
-            { icon: "❓", text: "Задавайте въпроси и получавайте експертни отговори в реално време." },
-            { icon: "📑", text: "Създавайте специализирани документи – от правни консултации до маркетинг стратегии." }
-          ].map((item, index) => (
-            <div key={index} className="relative w-32 h-32 flex items-center justify-center bg-gray-900 rounded-xl transition-all duration-300 hover:bg-gray-700 group">
+          {[{
+            icon: <PaperClipIcon className="h-12 w-12 text-gray-500 group-hover:text-white" />,
+            text: "Генерирайте детайлен бизнес план само с няколко клика."
+          }, {
+            icon: <FolderIcon className="h-12 w-12 text-gray-500 group-hover:text-white" />,
+            text: "Качвайте документи и получавайте персонализирани анализи."
+          }, {
+            icon: <QuestionMarkCircleIcon className="h-12 w-12 text-gray-500 group-hover:text-white" />,
+            text: "Задавайте въпроси и получавайте експертни отговори в реално време."
+          }, {
+            icon: <DocumentTextIcon className="h-12 w-12 text-gray-500 group-hover:text-white" />,
+            text: "Създавайте специализирани документи – от правни консултации до маркетинг стратегии."
+          }].map((item, index) => (
+            <div
+              key={index}
+              className="relative w-32 h-32 flex items-center justify-center bg-[#0e0f0f] rounded-xl transition-all duration-300 hover:bg-[#222]/100 group"
+            >
               <span className="absolute inset-0 flex items-center justify-center text-4xl group-hover:hidden">
                 {item.icon}
               </span>
@@ -61,15 +93,16 @@ export default function Hero() {
         {/* Action Button */}
         <div className="mt-8">
           {isAuthenticated ? (
-            <Link
-              href="/businessinfo"
-              className="bg-gray-800 hover:bg-gray-700 px-6 py-3 rounded-lg text-white transition-all duration-300"
+            <button
+              onClick={() => router.push("/businessinfo")}
+              className="bg-[#181818] hover:bg-[#292929] px-6 py-3 rounded-lg text-white transition-all duration-300"
             >
               Започнете сега!
-            </Link>
+            </button>
           ) : (
             <button
-              className="bg-gray-800 px-6 py-3 rounded-lg text-gray-500 cursor-not-allowed"
+              onClick={() => router.push("/signup")}
+              className="bg-[#292929] px-6 py-3 rounded-lg text-gray-500 cursor-not-allowed"
               disabled
             >
               Започнете сега!
@@ -84,18 +117,16 @@ export default function Hero() {
       </footer>
 
       <div className="fixed top-4 right-4 flex space-x-4">
-        <Link
-          href="/login"
-          className="bg-gray-900 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all"
-        >
-          Вход
-        </Link>
-        <Link
-          href="/signup"
-          className="bg-gray-900 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all"
-        >
-          Регистрация
-        </Link>
+        {isAuthenticated ? null : (
+          <>
+            <Link href="/login" className="bg-gray-900 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all">
+              Вход
+            </Link>
+            <Link href="/signup" className="bg-gray-900 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all">
+              Регистрация
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );
