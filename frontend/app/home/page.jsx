@@ -1,48 +1,45 @@
 "use client";
-
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
-  const [businesses, setBusinesses] = useState([]);
+  const router = useRouter();
+  const [firms, setFirms] = useState([]);
+  const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
   useEffect(() => {
-    const savedBusinesses =
-      JSON.parse(localStorage.getItem("businesses")) || [];
-    setBusinesses(savedBusinesses);
-  }, []);
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    
+    const fetchFirms = async () => {
+      const res = await fetch("http://localhost:8000/api/REST/list-firms/", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setFirms(data.firms);
+      }
+    };
+
+    fetchFirms();
+  }, [token, router]);
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen font-sans relative min-h-screen bg-[url('/background.jpg')] bg-cover bg-center">
-      <div className="absolute inset-0 bg-black/10 backdrop-blur-xs" />
-
-      <div className="relative text-2xl text-white font-semibold z-10">
-        Всички мои проекти
-      </div>
-
-      {businesses.length === 0 ? (
-        <div className="relative text-gray-300 z-10 mt-2">
-          Нямате добавени проекти.
-        </div>
-      ) : (
-        <div className="relative space-y-4 z-10 mt-4">
-          {businesses.map((business, index) => (
-            <div
-              key={index}
-              className="w-96 p-4 bg-gray-700 text-white rounded-xl shadow-md"
-            >
-              <h3 className="text-xl font-semibold">{business.name}</h3>
-              <p>{business.description}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <Link href="/businessinfo">
-        <button className="relative mt-5 cursor-pointer bg-gray-700 hover:bg-gray-500 transition-all duration-300 text-white px-4 py-2 rounded-xl transform hover:scale-105 z-10">
-          Добави нов проект
-        </button>
-      </Link>
+    <div className="max-w-xl mx-auto p-6 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl font-semibold text-center mb-4">Вашите фирми</h2>
+      <ul>
+        {firms.map((firm) => (
+          <li key={firm.id} className="border p-3 rounded mb-2 flex justify-between items-center">
+            <span>{firm.name}</span>
+            <button onClick={() => router.push(`/chat?firm_id=${firm.id}`)} className="bg-blue-500 text-white px-3 py-1 rounded">
+              Чат
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
