@@ -30,6 +30,10 @@ export default function Signup() {
       throw new Error(data.detail || "Signup failed");
     }
 
+    // Save tokens in localStorage
+    localStorage.setItem("access", data.access);
+    localStorage.setItem("refresh", data.refresh);
+
     router.push("/login"); // Redirect to login page on success
   } catch (err) {
     setError(err.message);
