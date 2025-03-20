@@ -8,6 +8,7 @@ class InteractionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Interaction
         fields = ['id', 'user_message', 'ai_response', 'created_at']
+
 class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
