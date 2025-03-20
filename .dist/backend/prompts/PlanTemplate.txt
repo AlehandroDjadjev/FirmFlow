@@ -1,0 +1,76 @@
+Based on this plan - prompt and yours data set, please generate a full guide for starting a business in Bulgaria, including the provided user specification. It should be structured in a way that a person with 0 prior experience can understand. Make sure to focus on including every little step and problem you might meet with human language, 
+Including extradetail on steps is less important than having every single step outlined and presented. Here is a guide on the plan structure. Use your dataset and depending on what the user requests - make it short, medium in length or full and long:
+
+***********
+Generate a detailed business development guide for establishing a company in Bulgaria, outlining all the essential steps and considerations. The guide should be organized into the following sections:
+
+    Market Research and Business Planning:
+        Conducting market analysis specific to Bulgaria.
+        Identifying target customers and competitors.
+        Venture Overseas
+        Developing a business plan that aligns with Bulgarian market conditions.
+
+    Choosing the Appropriate Legal Structure:
+        Overview of available business entities in Bulgaria, such as Limited Liability Company (OOD), Joint Stock Company (AD), Sole Proprietorship, and Partnerships.
+        Venture Overseas+7Deloitte United States+7companyformationbulgaria.com+7
+        Criteria for selecting the suitable legal structure based on liability, taxation, and investment needs.
+        Deloitte United States+1go-eu.com+1
+
+    Company Name Reservation and Registration:
+        Guidelines for selecting a unique company name compliant with Bulgarian regulations.
+        Procedures for reserving and registering the business name with the Bulgarian Commercial Register.
+
+    Preparation of Incorporation Documents:
+        Drafting the Articles of Association and other founding documents.
+        Venture Overseas+7companyformationbulgaria.com+7go-eu.com+7
+        Notarization requirements and processes in Bulgaria.
+
+    Opening a Corporate Bank Account:
+        Steps to open a bank account in Bulgaria.
+        Depositing the minimum share capital as mandated by Bulgarian law.
+        Deloitte United States+2lawyers-bulgaria.com+2companyformationbulgaria.com+2
+
+    Registration with Bulgarian Authorities:
+        Submitting necessary documents to the Bulgarian Commercial Register.
+        Deloitte United States+1Wise+1
+        Obtaining a unique identification code (UIC) and registering for tax purposes.
+
+    VAT Registration and Social Security:
+        Criteria for mandatory VAT registration in Bulgaria.
+        Registering employees for social security and compliance with Bulgarian labor laws.
+
+    Obtaining Necessary Licenses and Permits:
+        Identifying industry-specific licenses required in Bulgaria.
+        companyformationbulgaria.com+4Deloitte United States+4lawyers-bulgaria.com+4
+        Application procedures and regulatory bodies involved.
+
+    Setting Up Accounting and Compliance Systems:
+        Establishing accounting practices in line with Bulgarian standards.
+        Nomad Capitalist+2go-eu.com+2Wise+2
+        Ensuring ongoing compliance with financial reporting and taxation obligations.
+
+    Understanding Taxation and Incentives:
+        Overview of Bulgaria's corporate tax rates and structures.
+        Exploring available tax incentives and benefits for new businesses.
+
+    Human Resources and Employment Regulations:
+        Hiring practices and employment contracts under Bulgarian law.
+        Employer obligations regarding social security and employee benefits.
+
+    Navigating Cultural and Business Etiquette:
+        Insights into Bulgarian business culture and practices.
+        Tips for effective communication and relationship-building in Bulgaria.
+
+    Utilizing Government Support and Resources:
+        Overview of Bulgarian government programs supporting new businesses.
+        Accessing grants, subsidies, and other resources available to entrepreneurs.
+
+    Developing a Marketing and Sales Strategy:
+        Crafting marketing plans tailored to the Bulgarian market.
+        Utilizing digital marketing, local media, and networking opportunities.
+
+    Continuous Learning and Adaptation:
+        Staying informed about changes in Bulgarian business laws and market trends.
+        Adapting business strategies to evolving economic conditions in Bulgaria.
+
+*********
