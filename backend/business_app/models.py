@@ -7,21 +7,29 @@ from django.core.exceptions import ValidationError
 class Document(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
-    file = models.FileField(upload_to='documents/', null=True, blank=True)  # File upload
-    description = models.TextField(null=True, blank=True)  # Text description
+    text = models.TextField(blank=False)  # Text description
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
 
-    def clean(self):
-        """Ensure that either a file or a description is provided, but not both."""
-        if not self.file and not self.description:
-            raise ValidationError('You must provide either a file or a description.')
-        if self.file and self.description:
-            raise ValidationError('You cannot provide both a file and a description.')
-
     class Meta:
         verbose_name = "Document"
         verbose_name_plural = "Documents"
+
+
+class Business(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='businesses')  # Direct relationship to User
+    main_document = models.ForeignKey(Document, related_name='main_for_businesses', on_delete=models.SET_NULL, null=True, blank=True)
+    extra_documents = models.ManyToManyField(Document, related_name='businesses')  # Linking documents
+
+    def __str__(self):
+        return f"Business for {self.user.username} - ID: {self.id}"
+
+    class Meta:
+        verbose_name = "Business"
+        verbose_name_plural = "Businesses"
+
+
+
     
