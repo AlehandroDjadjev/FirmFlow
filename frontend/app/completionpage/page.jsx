@@ -1,33 +1,65 @@
-"use client";
+import React, { useState, useEffect, useRef } from 'react';
 
-import React from "react";
-import { useRouter } from "next/navigation";
+export default function ChatInterface() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const messageEndRef = useRef(null);
 
-export default function FinalPage() {
-  const router = useRouter();
+  const sendMessage = async () => {
+    if (input.trim() === '') return;
 
-  const handleGoHome = () => {
-    router.push("/home");
+    const userMessage = { sender: 'user', text: input };
+    setMessages((prev) => [...prev, userMessage]);
+
+    setInput('');
+
+    const res = await fetch('/api/chat/respond', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: input }),
+    });
+
+    const data = await res.json();
+    const aiMessage = { sender: 'ai', text: data.reply };
+
+    setMessages((prev) => [...prev, aiMessage]);
   };
 
+  useEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   return (
-    <div className="flex flex-col justify-center items-center h-screen font-sans relative min-h-screen bg-[url('/background.jpg')] bg-cover bg-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
-
-      <div className="relative text-2xl text-white font-semibold z-10 text-center">
-        Благодарим ви за попълването!
+    <div className="max-w-2xl mx-auto bg-white shadow-lg rounded-lg border p-4 flex flex-col h-[80vh]">
+      <div className="flex-grow overflow-auto mb-4">
+        {messages.map((msg, index) => (
+          <div
+            key={index}
+            className={`my-2 p-2 rounded-md ${msg.sender === 'user' ? 'bg-blue-100 self-end' : 'bg-gray-100 self-start'}`}
+          >
+            <strong>{msg.sender === 'user' ? 'Вие' : 'AI Асистент'}</strong>
+            <p>{msg.text}</p>
+          </div>
+        ))}
+        <div ref={messageEndRef} />
       </div>
 
-      <div className="relative mt-5 text-lg text-gray-300 z-10 text-center">
-        Вашето описание е успешно подадено.
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Напишете вашето съобщение..."
+          className="border border-gray-300 rounded-md flex-grow p-2"
+          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+        />
+        <button
+          onClick={sendMessage}
+          className="bg-blue-500 hover:bg-blue-600 text-white rounded-md px-4 py-2"
+        >
+          Изпрати
+        </button>
       </div>
-
-      <button
-        onClick={handleGoHome}
-        className="relative mt-5 bg-gray-700 cursor-pointer hover:bg-gray-500 transition-all duration-300 text-white px-4 py-2 rounded-xl transform hover:scale-105 z-10"
-      >
-        Виж всички бизнеси
-      </button>
     </div>
   );
 }
