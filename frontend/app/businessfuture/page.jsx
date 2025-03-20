@@ -26,7 +26,7 @@ export default function BusinessFuturePage() {
 
   return (
     <div className="flex flex-col justify-center items-center h-screen font-sans relative min-h-screen bg-[url('/background.jpg')] bg-cover bg-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" />
 
       <div className="relative mb-5 text-2xl text-white font-semibold z-10 text-center">
         Опиши бъдещето, което искаш за бизнеса си
@@ -34,7 +34,7 @@ export default function BusinessFuturePage() {
 
       <div className="relative w-96 z-10">
         <textarea
-          className="w-full h-36 p-2 text-lg text-white bg-black/50 rounded-lg border border-gray-300 shadow-sm resize-none transition-all duration-300 ease-in-out focus:border-blue-500 focus:shadow-lg"
+          className="w-full h-36 p-2 text-lg text-white bg-black/50 rounded-lg shadow-sm resize-none transition-all duration-300 ease-in-out focus:border-blue-500 focus:shadow-lg"
           placeholder="Пиши тук..."
           value={text}
           onChange={handleTextChange}

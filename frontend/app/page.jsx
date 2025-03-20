@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function Hero() {
   return (
     <div className="relative min-h-screen bg-[url('/background.jpg')] bg-cover bg-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-black/10 backdrop-blur-xs" />
       <div className="relative grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] text-white">
         <header className="text-center">
           <h1 className="text-4xl font-bold">FirmFlow</h1>
@@ -18,7 +18,7 @@ export default function Hero() {
               <span className="absolute inset-0 flex items-center justify-center text-4xl group-hover:hidden">
                 📜
               </span>
-              <span className="absolute inset-0 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="absolute inset-0 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 Генерирайте детайлен бизнес план само с няколко клика.
               </span>
             </div>
@@ -26,7 +26,7 @@ export default function Hero() {
               <span className="absolute inset-0 flex items-center justify-center text-4xl group-hover:hidden">
                 📂
               </span>
-              <span className="absolute inset-0 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="absolute inset-0 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 Качвайте документи и получавайте персонализирани анализи.
               </span>
             </div>
@@ -34,7 +34,7 @@ export default function Hero() {
               <span className="absolute inset-0 flex items-center justify-center text-4xl group-hover:hidden">
                 ❓
               </span>
-              <span className="absolute inset-0 flex items-center justify-center text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="absolute inset-0 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 Задавайте въпроси и получавайте експертни отговори в реално
                 време.
               </span>
@@ -43,7 +43,7 @@ export default function Hero() {
               <span className="absolute inset-0 flex items-center justify-center text-4xl group-hover:hidden">
                 📑
               </span>
-              <span className="absolute inset-0 flex items-center justify-center text-xsm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="absolute inset-0 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 Създавайте специализирани документи – от правни консултации до
                 маркетинг стратегии.
               </span>
