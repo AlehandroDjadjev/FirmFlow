@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -20,16 +20,28 @@ export default function CreateFirmPage() {
     e.preventDefault();
     setLoading(true);
 
+    // Retrieve the access token from localStorage
+    const accessToken = localStorage.getItem('access');
+
+    if (!accessToken) {
+      alert('Не сте влезли в системата. Моля, влезте отново.');
+      setLoading(false);
+      return;
+    }
+
     const res = await fetch('http://localhost:8000/api/create-firm/', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`  // Include access token
+      },
       body: JSON.stringify(formData)
     });
 
     if (res.ok) {
       const data = await res.json();
 
-      // Optionally store the initial response locally
+      // Store the response locally
       localStorage.setItem('initial_plan', data.business_plan);
       localStorage.setItem('business_id', data.business_id);
 

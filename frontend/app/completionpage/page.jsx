@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+=======
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
+>>>>>>> 3a1dd13cc7b2373170c687f3a03801b3ef64bb11
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState([]);

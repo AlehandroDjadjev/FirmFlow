@@ -1,7 +1,40 @@
 "use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function Hero() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check if access token exists in localStorage
+    const accessToken = localStorage.getItem("access");
+
+    if (!accessToken) {
+      router.push("/login"); // Redirect to login if not authenticated
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, [router]);
+
+  if (isAuthenticated === false) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-black text-white">
+        <p className="text-red-500 text-lg">{error}</p>
+        <Link
+          href="/login"
+          className="mt-4 bg-gray-700 hover:bg-gray-500 transition-all duration-300 text-white px-4 py-2 rounded-xl"
+        >
+          Вход
+        </Link>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null; // Prevent rendering while checking auth
+
+
   return (
     <div className="relative min-h-screen bg-black">
       <div className="relative grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] text-white">
@@ -58,20 +91,6 @@ export default function Hero() {
         <footer className="text-center">
           <p>&copy; 2025 FirmFlow. Всички права запазени.</p>
         </footer>
-        <div className="fixed top-4 right-4 flex space-x-4">
-          <Link
-            href="/login"
-            className="bg-gray-700 hover:bg-gray-500 transition-all duration-300 text-white px-4 py-2 rounded-xl transform hover:scale-105"
-          >
-            Вход
-          </Link>
-          <Link
-            href="/signup"
-            className="bg-gray-700 hover:bg-gray-500 transition-all duration-300 text-white px-4 py-2 rounded-xl transform hover:scale-105"
-          >
-            Регистрация
-          </Link>
-        </div>
       </div>
     </div>
   );
