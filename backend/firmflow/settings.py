@@ -25,11 +25,8 @@ SECRET_KEY = 'django-insecure-(k8armjywu6i(4xj@0-(nh*cyew^-h&^e+b=-_xlvq!*%=&bt2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1'
-]
-
+ALLOWED_HOSTS = ['localhost','127.0.0.1']
+CORS_ALLOWED_ORIGINS = ['http://localhost:3001','http://localhost:8000']
 
 # Application definition
 
@@ -56,12 +53,15 @@ REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser', 
     ],
+     'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',  # This allows unrestricted API access
+    ],
 
 }
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -71,10 +71,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'firmflow.urls'
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # If running Next.js locally
-]
 
 TEMPLATES = [
     {

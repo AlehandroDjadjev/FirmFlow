@@ -30,6 +30,14 @@ class Business(models.Model):
         verbose_name = "Business"
         verbose_name_plural = "Businesses"
 
+class Interaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='interactions')
+    user_message = models.TextField()
+    ai_response = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Interaction with {self.user.username} at {self.created_at}"
 
 
     
