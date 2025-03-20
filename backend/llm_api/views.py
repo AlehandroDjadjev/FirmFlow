@@ -13,7 +13,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from .models import Firm, MainDocument
+from .models import Firm, MainDocument, AIInteraction
 
 # Load environment variables
 load_dotenv()
@@ -166,3 +166,27 @@ def list_firms(request):
     """Returns all firms"""
     firms = Firm.objects.all().values("id", "name", "created_at")
     return Response({"firms": list(firms)})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_full_chat_history(request, firm_id):
+    """Retrieve the full chat history for a firm"""
+    firm = get_object_or_404(Firm, id=firm_id)
+    
+    interactions = AIInteraction.objects.filter(firm=firm).order_by("created_at")
+
+    response_data = {
+        "firm_id": firm.id,
+        "firm_name": firm.name,
+        "chat_history": [
+            {
+                "user_prompt": interaction.user_prompt,
+                "ai_response": interaction.ai_response,
+                "created_at": interaction.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            }
+            for interaction in interactions
+        ]
+    }
+
+    return Response(response_data, status=status.HTTP_200_OK)
