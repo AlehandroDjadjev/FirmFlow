@@ -1,15 +1,37 @@
-export function CreateFirmPage() {
+"use client";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+export default function CreateFirmPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({ name: '', description: '', budget: '' });
+  const [formData, setFormData] = useState({
+    name: ""
+  });
   const [loading, setLoading] = useState(false);
+  const token = typeof window !== "undefined" ? localStorage.getItem("access") : null;
+
+  useEffect(() => {
+    if (!token) {
+      router.push("/login");
+    }
+  }, [token, router]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+<<<<<<< HEAD
+
+    const res = await fetch("http://localhost:8000/api/LLM/initialize_firm/", {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+=======
     const token = localStorage.getItem('access');
 
     const res = await fetch('http://localhost:8000/api/LLM/initialize_firm/', {
@@ -17,16 +39,16 @@ export function CreateFirmPage() {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
+>>>>>>> a09493912a6e7898a8a0e22f2f1c7bc4b19b009c
       },
       body: JSON.stringify(formData)
     });
 
     if (res.ok) {
-      const data = await res.json();
-      localStorage.setItem('business_id', data.business_id);
-      router.push('/home');
+      router.push("/home");
     } else {
-      alert('Failed to create firm');
+      const error = await res.json();
+      alert("Initialization failed: " + error.detail);
     }
 
     setLoading(false);
@@ -34,13 +56,12 @@ export function CreateFirmPage() {
 
   return (
     <div className="max-w-xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-semibold text-center mb-4">Initialize Your Firm</h2>
+      <h2 className="text-2xl font-semibold text-center mb-4">Инициализация на фирма</h2>
+
       <form onSubmit={handleSubmit}>
-        <input type="text" name="name" placeholder="Firm Name" onChange={handleChange} required className="border p-2 rounded w-full mb-4" />
-        <textarea name="description" placeholder="Business Description" onChange={handleChange} required className="border p-2 rounded w-full mb-4" />
-        <input type="number" name="budget" placeholder="Budget" onChange={handleChange} required className="border p-2 rounded w-full mb-4" />
+        <input type="text" name="name" placeholder="Име на фирмата" value={formData.name} onChange={handleChange} required className="border p-2 rounded w-full mb-4"/>
         <button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded w-full">
-          {loading ? 'Initializing...' : 'Create Firm & Start Chat'}
+          {loading ? "Инициализация..." : "Създай фирма"}
         </button>
       </form>
     </div>
