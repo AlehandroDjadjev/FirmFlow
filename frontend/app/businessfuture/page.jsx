@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "../apifetch";
 
 export default function BusinessFuturePage() {
   const [future, setFuture] = useState("");
@@ -35,7 +36,7 @@ export default function BusinessFuturePage() {
     // Send complete firmData to API with the JWT token in headers
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         "http://localhost:8000/api/LLM/firms/initialize/",
         {
           method: "POST",

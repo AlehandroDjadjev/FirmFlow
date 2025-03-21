@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "../apifetch";
 
 export default function DomainCheckPage() {
   const [domain, setDomain] = useState("");
@@ -25,7 +26,7 @@ export default function DomainCheckPage() {
     try {
       // Retrieve the JWT token from localStorage
       const token = localStorage.getItem("access");
-      const response = await fetch("http://localhost:8000/api/LLM/firms/name/", {
+      const response = await apiFetch("http://localhost:8000/api/LLM/firms/name/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

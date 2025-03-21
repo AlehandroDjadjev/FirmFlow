@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Script from "next/script";
 import { useParams } from "next/navigation";
+import { apiFetch } from "../apifetch";
 
 export default function DashboardPage() {
   const [firm, setFirm] = useState(null);
@@ -16,7 +17,7 @@ export default function DashboardPage() {
     const token = localStorage.getItem("access");
     if (!firmId || !token) return;
 
-    fetch(`http://localhost:8000/api/LLM/firm/${firmId}/`, {
+    apiFetch(`http://localhost:8000/api/LLM/firm/${firmId}/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

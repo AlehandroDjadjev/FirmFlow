@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { apiFetch } from "../apifetch";
 
 export default function RAGUploadPage() {
   const [ragText, setRagText] = useState("");
@@ -41,7 +42,7 @@ export default function RAGUploadPage() {
     setMessage("");
 
     try {
-      const response = await fetch("http://localhost:8000/api/LLM/rag/", {
+      const response = await apiFetch("http://localhost:8000/api/LLM/rag/", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
