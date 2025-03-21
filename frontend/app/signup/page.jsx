@@ -33,9 +33,6 @@ export default function Signup() {
       const data = await response.json(); // Get the response data here
 
       // Save tokens in localStorage
-      localStorage.setItem("access", data.access);
-      localStorage.setItem("refresh", data.refresh);
-
       router.push("/login"); // Redirect to login page on success
     } catch (err) {
       setError(err.message);

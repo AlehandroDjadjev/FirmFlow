@@ -10,42 +10,124 @@ export default function Hero() {
 
   // Check authentication on mount
   useEffect(() => {
-    const token = localStorage.getItem("access");
-
-    if (token) {
-      try {
-        const isExpired = checkTokenExpiration(token);
-
-        if (!isExpired) {
-          setIsAuthenticated(true);  // If token is valid, set authentication
-        } else {
-          localStorage.removeItem("access");  // Remove expired token
+    const checkAuthentication = async () => {
+      const token = localStorage.getItem("access");
+  
+      if (token) {
+        try {
+          const isExpired = checkTokenExpiration(token);
+  
+          if (!isExpired) {
+            setIsAuthenticated(true);
+          } else {
+            localStorage.removeItem("access");
+            setIsAuthenticated(false);
+  
+            // Refresh token logic if the access token is expired
+            const refreshToken = getRefreshToken();
+            if (refreshToken) {
+              // Make a request to renew the access token
+              const refreshResponse = await fetch('http://localhost:8000/auth/token/refresh/', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ refresh: refreshToken }),
+              });
+  
+              if (refreshResponse.ok) {
+                const data = await refreshResponse.json();
+                localStorage.setItem("access", data.access); // Save new access token
+                setIsAuthenticated(true); // Now authenticated
+              } else {
+                localStorage.removeItem("access");
+                setIsAuthenticated(false);
+                router.push("/login"); // Redirect to login if refresh failed
+              }
+            } else {
+              router.push("/login"); // If no refresh token, go to login
+            }
+          }
+        } catch (error) {
+          console.error("Error decoding token:", error);
           setIsAuthenticated(false);
-          router.push("/signup");  // Redirect to signup if the token expired
+          router.push("/signup");
         }
-      } catch (error) {
-        console.error("Error decoding token:", error);
+      } else {
         setIsAuthenticated(false);
-        router.push("/signup");  // Redirect to signup if token validation failed
+        router.push("/signup"); // Redirect to signup if no access token
       }
-    } else {
-      setIsAuthenticated(false);
-      router.push("/signup");  // Redirect to signup if no token exists
-    }
-  }, []);  // Runs once on component mount
-
+    };
+  
+    checkAuthentication(); // Call the async function
+  }, []);
   // Function to decode JWT token and check expiration
   const checkTokenExpiration = (token) => {
-    const parts = token.split(".");
-    if (parts.length !== 3) {
-      throw new Error("Invalid token format");
+    const decoded = decodeToken(token);
+    if (decoded === null) {
+      // If the token is invalid, return true (expired).
+      return true;
     }
-
-    const payload = JSON.parse(atob(parts[1]));  // Decode base64 payload
-    const expirationTime = payload.exp * 1000;  // Convert to milliseconds
+  
+    const expirationTime = decoded.exp * 1000; // Convert to milliseconds
     return expirationTime < Date.now();
   };
 
+  function getRefreshToken() {
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (!refreshToken) {
+        console.error("No refresh token found");
+    }
+    return refreshToken;
+  }
+
+  const decodeToken = (token) => {
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+        console.error("Invalid token format");
+        return null;
+    }
+    const payload = JSON.parse(atob(parts[1])); // Decode the base64 payload
+    console.log("Decoded Token Payload:", payload);
+    return payload;
+  };
+
+  async function logout() {
+    try {
+      const refreshToken = getRefreshToken();
+      const accessToken = localStorage.getItem('access');  
+  
+      // Proceed with the logout request only if the refresh token exists
+      if (!refreshToken) {
+        console.error("No refresh token available");
+        return;
+      }
+  
+      const response = await fetch('http://localhost:8000/auth/logout/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ refresh: refreshToken }),  // Send the refresh token in the body
+      });
+  
+      if (response.ok) {
+        console.log("Logged out successfully");
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh_token");
+        router.push("/login"); // Redirect user to login page
+      } else {
+        const errorText = await response.text();
+        console.error("Logout failed:", errorText);
+        alert("Logout failed: " + errorText);  // Show the error to the user
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("An error occurred during logout. Please try again.");
+    }
+  }
+  
   return (
     <div className="relative min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center px-6">
       {/* Background Blur Effect */}
@@ -117,7 +199,14 @@ export default function Hero() {
       </footer>
 
       <div className="fixed top-4 right-4 flex space-x-4">
-        {isAuthenticated ? null : (
+        {isAuthenticated ? (
+          <button
+            onClick={logout}
+            className="bg-gray-900 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all"
+          >
+            Изход
+          </button>
+        ) : (
           <>
             <Link href="/login" className="bg-gray-900 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all">
               Вход
