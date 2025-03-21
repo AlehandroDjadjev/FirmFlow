@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 export default function HomePage() {
   const router = useRouter();
   const [firms, setFirms] = useState([]);
-  const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("access") : null;
 
   useEffect(() => {
     if (!token) {
@@ -14,8 +14,9 @@ export default function HomePage() {
     }
     
     const fetchFirms = async () => {
-      const res = await fetch("http://localhost:8000/api/REST/list-firms/", {
+      const res = await fetch("http://localhost:8000/api/LLM/firms/", {
         headers: { Authorization: `Bearer ${token}` }
+        
       });
 
       if (res.ok) {
