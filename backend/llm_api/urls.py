@@ -34,5 +34,5 @@ urlpatterns = [
         name="list_firm_documents_view"),
     #path("firms/location/", FirmCreateLocationView.as_view(), name="create-firm-with-location"),
     path("firm/<int:firm_id>/", GetFirm.as_view(), name="get_firm"),
-    path("documents/main/<int:firm_id>/", GetMainDocumentView.as_view(), name="get_firm"),
+    path("documents/main/<int:firm_id>/", GetMainDocumentView.as_view(), name="get_firm_document"),
 ]

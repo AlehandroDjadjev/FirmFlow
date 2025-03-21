@@ -82,3 +82,7 @@ mkdocs documentation
 
 mypy
 .mypy_cache/
+
+# Ignore Python cache files and folders
+__pycache__/
+*.py[cod]
