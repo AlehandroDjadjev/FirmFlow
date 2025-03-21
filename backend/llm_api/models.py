@@ -11,10 +11,6 @@ class Firm(models.Model):
     website = models.URLField(blank=True, null=True)  # Stores the website URL
     created_at = models.DateTimeField(auto_now_add=True)
 
-    # New fields to store latitude and longitude
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-
     def __str__(self):
         return self.name
 
