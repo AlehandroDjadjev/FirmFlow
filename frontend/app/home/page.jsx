@@ -1,114 +1,67 @@
 "use client";
-import React, { useEffect, useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function HomePage() {
-  const router = useRouter();
   const [firms, setFirms] = useState([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const router = useRouter();
 
-  const getAccessToken = async () => {
-    let accessToken = localStorage.getItem("access_token");
-    const refreshToken = localStorage.getItem("refresh_token");
-
-    if (!accessToken || checkTokenExpiration(accessToken)) {
-      if (!refreshToken || checkTokenExpiration(refreshToken)) {
-        console.error("Tokens expired, logging out.");
-        logoutUser();
-        return null;
-      }
+  useEffect(() => {
+    async function fetchFirms() {
       try {
-        const res = await fetch("http://localhost:8000/api/token/refresh/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refresh: refreshToken })
+        const token = localStorage.getItem("access");
+        const res = await fetch("http://localhost:8000/api/LLM/firms/", {
+          headers: {
+            "Authorization": token ? `Bearer ${token}` : "",
+          },
         });
-        if (res.ok) {
-          const data = await res.json();
-          localStorage.setItem("access_token", data.access);
-          return data.access;
-        } else {
-          console.error("Failed to refresh token");
-          logoutUser();
-          return null;
-        }
-      } catch (error) {
-        console.error("Error refreshing token:", error);
-        logoutUser();
-        return null;
-      }
-    }
-    return accessToken;
-  };
-
-  const logoutUser = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    router.push("/login"); // Redirect to login page
-  };
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = await getAccessToken();
-      if (!token) {
-        setIsAuthenticated(false);
-        return;
-      }
-      setIsAuthenticated(true);
-    };
-
-    checkAuth();
-  }, [router]);
-
-  useEffect(() => {
-    if (isAuthenticated === false) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, router]);
-
-  useEffect(() => {
-    const fetchFirms = async () => {
-      if (isAuthenticated === false) return;
-      const token = await getAccessToken();
-      if (!token) return;
-      
-      try {
-        const res = await fetch("http://localhost:8000/api/REST/list-firms/", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setFirms(data.firms);
-        } else {
-          console.error("Failed to fetch firms");
-        }
+        const data = await res.json();
+        // Assuming response structure: { firms: [ { id, name, ... }, ... ] }
+        setFirms(data.firms);
       } catch (error) {
         console.error("Error fetching firms:", error);
       }
-    };
-
-    if (isAuthenticated) {
-      fetchFirms();
     }
-  }, [isAuthenticated, router]);
+    fetchFirms();
+  }, []);
 
-  if (isAuthenticated === null) {
-    return <div>Loading...</div>;
-  }
+  const handleFirmClick = (firmId) => {
+    router.push(`/chat/${firmId}`);
+  };
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-semibold text-center mb-4">Вашите фирми</h2>
-      <ul>
-        {firms.map((firm) => (
-          <li key={firm.id} className="border p-3 rounded mb-2 flex justify-between items-center">
-            <span>{firm.name}</span>
-            <button onClick={() => router.push(`/chat?firm_id=${firm.id}`)} className="bg-blue-500 text-white px-3 py-1 rounded">
-              Чат
-            </button>
-          </li>
-        ))}
-      </ul>
+    <div className="flex min-h-screen">
+      {/* Vertical Navigation Sidebar */}
+      <div className="w-1/4 bg-[#0a0a0a] p-6">
+        <h2 className="text-2xl font-bold text-white mb-6">Фирми</h2>
+        {firms.length === 0 ? (
+          <p className="text-white">Няма налични фирми</p>
+        ) : (
+          <ul>
+            {firms.map((firm) => (
+              <li key={firm.id} className="mb-4">
+                <button
+                  onClick={() => handleFirmClick(firm.id)}
+                  className="w-full py-2 px-4 bg-[#181818] text-white rounded hover:bg-[#292929] transition-colors duration-300"
+                >
+                  {firm.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Main Content Area */}
+      <div className="w-3/4 bg-[#111] p-10 text-white flex items-center justify-center">
+        <div>
+          <h1 className="text-3xl font-bold mb-4">Добре дошли!</h1>
+          <p className="text-lg">
+            Изберете фирма от лявата навигация, за да започнете чат с AI бота.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

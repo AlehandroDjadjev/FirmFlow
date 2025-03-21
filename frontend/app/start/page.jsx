@@ -11,10 +11,10 @@ export function CreateFirmPage() {
     e.preventDefault();
     setLoading(true);
     const token = localStorage.getItem('access');
-    
-    const res = await fetch('http://localhost:8000/api/REST/create-firm/', {
+
+    const res = await fetch('http://localhost:8000/api/LLM/initialize_firm/', {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
