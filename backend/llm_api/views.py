@@ -45,6 +45,14 @@ def query_dataset_chunks(query: str):
     chunks = [(match.metadata["text"], match.score) for match in result.matches]
     return chunks
 
+def get_prompt_file(path):
+    file_path = os.path.join(settings.BASE_DIR, "prompts", path)
+    if os.path.exists(file_path):
+        with open(file_path, "r", encoding="utf-8") as file:
+            return file.read()
+    else:
+        return Response({"error": "No planPrompt file"}, status=status.HTTP_400_BAD_REQUEST)
+
 class CreateFirmView(generics.CreateAPIView):
     serializer_class = FirmSerializer
     parser_classes = (MultiPartParser, FormParser)
@@ -58,15 +66,8 @@ class CreateFirmView(generics.CreateAPIView):
 
         firm = Firm.objects.create(name=firm_name)
 
-        file_path = os.path.join(settings.BASE_DIR, "prompts", "GeneratePlan.txt")
-        if os.path.exists(file_path):
-            with open(file_path, "r", encoding="utf-8") as file:
-                plan_prompt = file.read()
-        else:
-            return Response({"error": "No planPrompt file"}, status=status.HTTP_400_BAD_REQUEST)
-
         messages = [
-            {"role": "user", "content": f"Generate a business PLAN for firm: {firm_name} using this template:{plan_prompt}"}
+            {"role": "user", "content": f"Generate a business PLAN for firm: {firm_name} using this template:{get_prompt_file("GeneratePlan.txt")}"}
         ]
 
         response = openai_client.chat.completions.create(
@@ -111,19 +112,13 @@ class SubmitPromptView(generics.CreateAPIView):
             f"--- Chunk {i+1} (score: {score:.2f}) ---\n{chunk}" for i, (chunk, score) in enumerate(retrieved_chunks)
         ])
 
-
-        file_path = os.path.join(settings.BASE_DIR, "prompts", "systemPrompt.txt")
-        if os.path.exists(file_path):
-            with open(file_path, "r", encoding="utf-8") as file:
-                sys_message = file.read()
-        else:
-            return Response({"error": "No systemPrompt file"}, status=status.HTTP_400_BAD_REQUEST)
-
         full_system_prompt = (
-            f"{sys_message}\n\n"
+            f"{get_prompt_file("systemPrompt.txt")}\n\n"
             f"### Retrieved Dataset Context ###\n{context_from_chunks}\n\n"
             f"{main_document_text}{document_context}\n\n"
-            f"### Previous Interactions ###\n{conversation_history}"
+            f"### Previous Interactions ###\n{conversation_history}\n\n"
+            f"{get_prompt_file("extradocPrompt") if save_as_document else ''}"
+
         )
 
 
@@ -214,3 +209,43 @@ class ListFirmsView(generics.ListAPIView):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response({"firms": serializer.data})
+    
+class UpdateMainDocumentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, firm_id):
+        firm = get_object_or_404(Firm, id=firm_id)
+        new_text = request.data.get("main_document", "").strip()
+
+        if not new_text:
+            return Response({"error": "main_document content is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        firm.main_document = new_text
+        firm.save()
+        return Response({"message": "Main document updated successfully.", "main_document": firm.main_document})
+    
+class UpdateFirmDocumentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, firm_id, document_number):
+        firm = get_object_or_404(Firm, id=firm_id)
+        document = get_object_or_404(Document, firm=firm, document_number=document_number, user=request.user)
+
+        new_title = request.data.get("title", None)
+        new_text = request.data.get("text", None)
+
+        if not new_title and not new_text:
+            return Response({"error": "At least one of 'title' or 'text' is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if new_title:
+            document.title = new_title
+        if new_text:
+            document.text = new_text
+
+        document.save()
+        return Response({
+            "message": "Document updated successfully.",
+            "document_number": document.document_number,
+            "title": document.title,
+            "text": document.text
+        }, status=status.HTTP_200_OK)
