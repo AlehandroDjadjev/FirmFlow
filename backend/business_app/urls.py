@@ -1,9 +1,7 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-
-from .views import DocumentUploadView
+from .views import DocumentUploadView, DocumentDeleteView
 
 urlpatterns = [
-    path('upload/', DocumentUploadView.as_view(), name='document-upload'),
-    path('documents/<int:document_id>/', DocumentUploadView.as_view(), name='document-delete'),  # For DELETE
+    path("upload/<int:firm_id>/", DocumentUploadView.as_view(), name="document-upload"),
+    path("delete/<int:firm_id>/<int:document_number>/", DocumentDeleteView.as_view(), name="document-delete"),
 ]

@@ -1,46 +1,33 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import generics, status
-from rest_framework.parsers import MultiPartParser, FormParser
-from django.core.exceptions import ValidationError
-
-from .serializers import DocumentSerializer, BusinessSerializer, InteractionSerializer
-
-
-from rest_framework import generics, status
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from .models import Document, Business, Interaction
-from openai import OpenAI
-from dotenv import load_dotenv
-import os
-import json
-from django.conf import settings
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import Document, Firm
+from .serializers import DocumentSerializer
 
-    
 class DocumentUploadView(generics.CreateAPIView):
-    queryset = Document.objects.all()  # The queryset is required for the `CreateAPIView`
-    serializer_class = DocumentSerializer  # Use the DocumentSerializer for validation and creation
-    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+    """Handles document creation."""
+    serializer_class = DocumentSerializer
+    permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def post(self, request, firm_id):
+        """Create a new document linked to a firm."""
+        firm = get_object_or_404(Firm, id=firm_id)  # Ensure firm exists
         serializer = DocumentSerializer(data=request.data)
+
         if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "Document submitted successfully!", "data": serializer.data}, status=status.HTTP_201_CREATED)
+            serializer.save(user=request.user, firm=firm)
+            return Response(
+                {"message": "Document created successfully!", "data": serializer.data},
+                status=status.HTTP_201_CREATED,
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def perform_create(self, serializer):
-        """Override the perform_create method to assign the user automatically."""
-        serializer.save(user=self.request.user)  # Assign the current logged-in user to the document
+class DocumentDeleteView(generics.DestroyAPIView):
+    """Delete a document using firm_id and document_number."""
+    permission_classes = [IsAuthenticated]
 
-    def delete(self, request, document_id):
-        """Delete a document by ID (only if owned by the user)."""
-        document = get_object_or_404(Document, id=document_id, user=request.user)
-
+    def delete(self, request, firm_id, document_number):
+        document = get_object_or_404(Document, firm__id=firm_id, document_number=document_number, user=request.user)
         document.delete()
         return Response({"message": "Document deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
-
