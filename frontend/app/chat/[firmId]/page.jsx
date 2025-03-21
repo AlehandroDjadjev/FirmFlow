@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { FiMaximize2, FiMinimize2, FiDownload } from "react-icons/fi";
 import  apiFetch  from "@/app/apifetch";
 
 export default function ChatPage() {
@@ -10,6 +11,7 @@ export default function ChatPage() {
   const [selectedIndexes, setSelectedIndexes] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [mainDocument, setMainDocument] = useState("");
   const { firmId } = useParams();
   const router = useRouter();
@@ -173,14 +175,47 @@ export default function ChatPage() {
       </div>
 
       <div className="w-2/7 min-h-screen bg-black text-white p-6 overflow-y-auto border-l border-white/10">
-        <h2 className="text-2xl font-bold mb-4 text-center">Основен документ</h2>
-        {mainDocument ? (
-          <div className="text-sm whitespace-pre-wrap text-gray-300 leading-relaxed">
-            {mainDocument}
-          </div>
-        ) : (
-          <p className="text-gray-500 text-center">Няма документ.</p>
-        )}
+      <div
+  className={`${
+    isExpanded
+      ? "fixed top-0 left-0 w-full h-full z-50 bg-black p-6"
+      : "w-full min-h-screen bg-black text-white p-6 border-l border-white/10"
+  } transition-all duration-300 overflow-y-auto`}
+>
+  <div className="flex justify-between items-center mb-4">
+    <h2 className="text-2xl font-bold text-center flex-1">Основен документ</h2>
+      <div className="flex gap-2">
+        <button
+          onClick={() => {
+            const blob = new Blob([mainDocument], { type: "text/plain" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `firm_${firmId}_plan.txt`;
+            link.click();
+          }}
+          title="Изтегли"
+          className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded"
+        >
+          <FiDownload />
+        </button>
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          title={isExpanded ? "Намали" : "Разшири"}
+          className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded"
+        >
+          {isExpanded ? <FiMinimize2 /> : <FiMaximize2 />}
+        </button>
+      </div>
+  </div>
+
+  {mainDocument ? (
+    <div className="text-sm whitespace-pre-wrap text-gray-300 leading-relaxed bg-neutral-900 p-4 rounded-lg">
+      {mainDocument}
+    </div>
+  ) : (
+    <p className="text-gray-500 text-center">Няма документ.</p>
+  )}
+</div>
       </div>
     </div>
   );
