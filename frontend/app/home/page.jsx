@@ -51,7 +51,7 @@ export default function HomePage() {
       </div>
 
       {/* Main Content */}
-      <div className="w-full flex flex-col items-center mt-24 space-y-6">
+      <div className="w-full flex flex-col items-center mt-24 space-y-6 ">
         {/* Stats Section */}
         <motion.div
           className="bg-[#1a1a1a] p-6 rounded-xl w-[400px] text-center shadow-lg"
@@ -68,7 +68,7 @@ export default function HomePage() {
 
         {/* Selection Container */}
         <motion.div
-          className="bg-[#121212] p-8 rounded-xl shadow-lg flex flex-col items-center w-[400px]"
+          className="bg-[#121212]/90 p-8 rounded-xl shadow-lg flex flex-col items-center w-[400px]"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -77,15 +77,19 @@ export default function HomePage() {
 
           {/* Dropdown Selection */}
           <select
-            className="w-full p-3 rounded-lg bg-[#1a1a1a] text-white text-lg focus:outline-none cursor-pointer"
+            className="w-full p-3 rounded-lg bg-[#1a1a1a] text-white text-lg focus:outline-none cursor-pointer appearance-none"
             value={selectedFirm || ""}
             onChange={(e) => setSelectedFirm(e.target.value)}
           >
-            <option value="" disabled>
+            <option className="bg-[#1a1a1a]/50 text-gray-400 rounded-lg" value="" disabled>
               -- Изберете фирма --
             </option>
             {firms.map((firm) => (
-              <option key={firm.id} value={firm.id}>
+              <option 
+                className="p-3 bg-[#1a1a1a]/50 hover:bg-[#333333] text-white rounded-lg" 
+                key={firm.id} 
+                value={firm.id}
+              >
                 {firm.name}
               </option>
             ))}
@@ -98,10 +102,10 @@ export default function HomePage() {
             className={`mt-4 px-6 py-3 rounded-lg text-lg font-semibold transition cursor-pointer ${
               selectedFirm
                 ? "bg-[#292929] hover:bg-[#3a3a3a]"
-                : "bg-gray-700 text-gray-400 cursor-not-allowed"
+                : "bg-[#292929] text-gray-400 cursor-not-allowed"
             }`}
           >
-            Потвърди
+            Влез
           </button>
         </motion.div>
 

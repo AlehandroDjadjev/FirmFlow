@@ -84,59 +84,59 @@ export default function FirmDashboardPage() {
   if (!firm) return <div className="text-white p-6">Зареждане...</div>;
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center px-10">
-      <div className="bg-[#0e0e0e] border border-[#1a1a1a] p-10 rounded-xl max-w-2xl w-full shadow-xl">
+    <div className="min-h-screen bg-gradient-to-b from-purple-600 to-pink-600 text-white flex items-center justify-center px-10">
+      <div className="bg-[#121212]/80 p-10 rounded-xl max-w-2xl w-full shadow-xl">
         <h1 className="text-3xl font-bold mb-6 text-center">Настройки на фирмата</h1>
-
+  
         <div className="mb-6">
-          <label className="block text-sm mb-2">Име на фирмата</label>
+          <label className="block text-sm mb-2 text-gray-400">Име на фирмата</label>
           {editing ? (
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
-              className="w-full p-3 rounded bg-black text-white border border-[#333]"
+              className="w-full p-3 rounded-lg bg-[#1a1a1a] text-white border border-[#444] focus:ring-2 focus:ring-blue-500"
             />
           ) : (
             <p className="text-lg">{firm.name}</p>
           )}
         </div>
-
+  
         <div className="mb-6">
-          <label className="block text-sm mb-2">Описание</label>
+          <label className="block text-sm mb-2 text-gray-400">Описание</label>
           {editing ? (
             <textarea
               name="description"
               value={form.description}
               onChange={handleChange}
-              className="w-full p-3 h-24 rounded bg-black text-white border border-[#333]"
+              className="w-full p-3 h-24 rounded-lg bg-[#1a1a1a] text-white border border-[#444] focus:ring-2 focus:ring-blue-500"
             />
           ) : (
             <p className="text-gray-300">{firm.description || "Без описание"}</p>
           )}
         </div>
-
+  
         <div className="flex justify-between gap-4">
           <button
             onClick={() => router.push(`/chat/${firmId}`)}
-            className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-500 transition w-full"
+            className="bg-[#0e0e0e] px-4 py-2 rounded-lg hover:bg-[#292929] transition w-full cursor-pointer"
           >
             💬 Към чата
           </button>
           <button
             onClick={() => router.push(`/home`)}
-            className="bg-purple-600 px-4 py-2 rounded hover:bg-purple-500 transition w-full"
+            className="bg-[#0e0e0e] px-4 py-2 rounded-lg hover:bg-[#292929] transition w-full cursor-pointer"
           >
             📊 Обратно към началната страница
           </button>
         </div>
-
+  
         <div className="flex justify-between gap-4 mt-6">
           {editing ? (
             <>
               <button
                 onClick={saveChanges}
-                className={`w-full py-2 rounded ${loading ? "bg-[#444]" : "bg-green-600 hover:bg-green-500"}`}
+                className={`w-full py-2 cursor-pointer rounded-lg ${loading ? "bg-[#444]" : "bg-[#0e0e0e] hover:bg-[#292929]"}`}
                 disabled={loading}
               >
                 💾 Запази
@@ -146,7 +146,7 @@ export default function FirmDashboardPage() {
                   setForm({ name: firm.name, description: firm.description });
                   setEditing(false);
                 }}
-                className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded"
+                className="w-full py-2 bg-[#0e0e0e] hover:bg-[#292929] rounded-lg cursor-pointer"
               >
                 Отказ
               </button>
@@ -154,19 +154,19 @@ export default function FirmDashboardPage() {
           ) : (
             <button
               onClick={() => setEditing(true)}
-              className="w-full py-2 bg-yellow-600 hover:bg-yellow-500 rounded"
+              className="w-full py-2 bg-[#0e0e0e] hover:bg-[#292929] rounded-lg cursor-pointer"
             >
               ✏️ Редактирай
             </button>
           )}
           <button
             onClick={deleteFirm}
-            className="w-full py-2 bg-red-600 hover:bg-red-500 rounded"
+            className="w-full py-2 bg-[#0e0e0e] hover:bg-[#292929] rounded-lg cursor-pointer"
           >
             🗑️ Изтрий
           </button>
         </div>
       </div>
     </div>
-  );
+  );  
 }
