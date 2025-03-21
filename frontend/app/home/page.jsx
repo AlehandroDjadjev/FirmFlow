@@ -63,7 +63,7 @@ export default function HomePage() {
 
   const handleSelectFirm = () => {
     const selectedFirm = firms[selectedIndex];
-    alert(`Selected: ${selectedFirm.name}`);
+    router.push(`/chat/${selectedFirm.id}`);
   };
 
   return (
