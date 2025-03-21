@@ -60,6 +60,16 @@ def get_prompt_file(path):
     else:
         return Response({"error": "No planPrompt file"}, status=status.HTTP_400_BAD_REQUEST)
 
+class FirmCreateLocationView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request):
+        serializer = FirmSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
 
 class CreateFirmView(generics.CreateAPIView):
     serializer_class = FirmSerializer
