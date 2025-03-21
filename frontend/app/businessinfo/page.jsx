@@ -37,7 +37,7 @@ export default function BusinessInfoPage() {
     };
     localStorage.setItem("firmData", JSON.stringify(firmData));
     // Navigate to next page
-    router.push("/businesslocation");
+    router.push("/businesstats");
   };
 
   return (
