@@ -11,8 +11,6 @@ export default function HomePage() {
       id: 1,
       name: "TechNova Solutions",
       location: "София, България",
-      industry: "Софтуерна компания",
-      team: "Екип: 150 души",
       budget: "Бюджет: 50,000 евро",
     },
     {
@@ -34,24 +32,6 @@ export default function HomePage() {
   ]);
   const [selectedIndex, setSelectedIndex] = useState(1);
   const router = useRouter();
-<<<<<<< HEAD
-  const [firms, setFirms] = useState([]);
-  const token = typeof window !== "undefined" ? localStorage.getItem("access") : null;
-
-  useEffect(() => {
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-    
-    const fetchFirms = async () => {
-      const res = await fetch("http://localhost:8000/api/LLM/firms/", {
-        headers: { Authorization: `Bearer ${token}` }
-        
-      });
-
-      if (res.ok) {
-=======
 
   useEffect(() => {
     async function fetchFirms() {
@@ -62,7 +42,6 @@ export default function HomePage() {
             "Authorization": token ? `Bearer ${token}` : "",
           },
         });
->>>>>>> a09493912a6e7898a8a0e22f2f1c7bc4b19b009c
         const data = await res.json();
         // Assuming response structure: { firms: [ { id, name, ... }, ... ] }
         setFirms(data.firms);
