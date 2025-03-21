@@ -148,13 +148,13 @@ export default function Hero() {
             <>
               <button
                 onClick={() => router.push("/businessinfo")}
-                className="bg-[#181818] cursor-pointer hover:bg-[#292929] px-6 py-3 rounded-lg text-white transition-all duration-300"
+                className="bg-[#181818]/80 cursor-pointer hover:bg-[#292929]/70 px-6 py-3 rounded-lg text-white transition-all duration-300"
               >
                 Започнете сега!
               </button>
               <button
                 onClick={() => router.push("/home")}
-                className="bg-[#181818] cursor-pointer hover:bg-[#292929] px-6 py-3 rounded-lg text-white transition-all duration-300"
+                className="bg-[#181818]/80 cursor-pointer hover:bg-[#292929]/70 px-6 py-3 rounded-lg text-white transition-all duration-300"
               >
                 Виж всички проекти!
               </button>
@@ -184,7 +184,7 @@ export default function Hero() {
         {isAuthenticated ? (
           <button
             onClick={logout}
-            className="bg-[#181818] cursor-pointer hover:bg-[#292929] px-4 py-2 rounded-lg transition-all"
+            className="bg-[#181818]/80 cursor-pointer hover:bg-[#292929]/70 px-4 py-2 rounded-lg transition-all"
           >
             Изход
           </button>
@@ -192,13 +192,13 @@ export default function Hero() {
           <>
             <Link
               href="/login"
-              className="bg-[#181818] hover:bg-[#292929] px-4 py-2 rounded-lg transition-all"
+              className="bg-[#181818]/80 hover:bg-[#292929]/70 px-4 py-2 rounded-lg transition-all"
             >
               Вход
             </Link>
             <Link
               href="/signup"
-              className="bg-[#181818] hover:bg-[#292929] px-4 py-2 rounded-lg transition-all"
+              className="bg-[#181818]/80 hover:bg-[#292929]/70 px-4 py-2 rounded-lg transition-all"
             >
               Регистрация
             </Link>

@@ -95,7 +95,7 @@ export default function FirmDashboardPage() {
   if (!firm) return <div className="text-white p-6">Зареждане...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-600 to-pink-600 text-white flex items-center justify-center px-10">
+    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-600 to-purple-900 text-white flex items-center justify-center px-10">
       <div className="bg-[#121212]/80 p-10 rounded-xl max-w-2xl w-full shadow-xl">
         <h1 className="text-3xl font-bold mb-6 text-center">Настройки на фирмата</h1>
 
@@ -104,7 +104,7 @@ export default function FirmDashboardPage() {
             <img
               src={`http://localhost:8000${firm.image}`}
               alt="Firm Logo"
-              className="h-32 mx-auto rounded border border-gray-700"
+              className="h-32 mx-auto rounded cursor-pointer"
             />
           </div>
         )}
@@ -116,7 +116,7 @@ export default function FirmDashboardPage() {
               type="file"
               accept="image/*"
               onChange={handleLogoChange}
-              className="w-full bg-black text-white border border-[#333] p-2 rounded"
+              className="w-full bg-[#0e0e0e]/70 text-white border border-[#333] p-2 rounded cursor-pointer"
             />
           </div>
         )}
@@ -128,7 +128,7 @@ export default function FirmDashboardPage() {
               name="name"
               value={form.name}
               onChange={handleChange}
-              className="w-full p-3 rounded-lg bg-[#1a1a1a] text-white border border-[#444] focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 rounded-lg bg-[#0e0e0e]/70 text-white border border-[#444] focus:ring-2 focus:ring-blue-500"
             />
           ) : (
             <p className="text-lg">{firm.name}</p>
@@ -142,7 +142,7 @@ export default function FirmDashboardPage() {
               name="description"
               value={form.description}
               onChange={handleChange}
-              className="w-full p-3 h-24 rounded-lg bg-[#1a1a1a] text-white border border-[#444] focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 h-24 rounded-lg bg-[#0e0e0e]/70 text-white border border-[#444] focus:ring-2 focus:ring-blue-500"
             />
           ) : (
             <p className="text-gray-300">{firm.description || "Без описание"}</p>
@@ -152,15 +152,15 @@ export default function FirmDashboardPage() {
         <div className="flex justify-between gap-4">
           <button
             onClick={() => router.push(`/chat/${firmId}`)}
-            className="bg-[#0e0e0e] px-4 py-2 rounded-lg hover:bg-[#292929] transition w-full cursor-pointer"
+            className="bg-[#0e0e0e]/70 px-4 py-2 rounded-lg hover:bg-[#292929]/70 transition w-full cursor-pointer"
           >
-            💬 Към чата
+            Към чата
           </button>
           <button
             onClick={() => router.push(`/home`)}
-            className="bg-[#0e0e0e] px-4 py-2 rounded-lg hover:bg-[#292929] transition w-full cursor-pointer"
+            className="bg-[#0e0e0e]/70 px-4 py-2 rounded-lg hover:bg-[#292929]/70 transition w-full cursor-pointer"
           >
-            📊 Обратно към началната страница
+            Обратно към бизнеси
           </button>
         </div>
   
@@ -170,11 +170,11 @@ export default function FirmDashboardPage() {
               <button
                 onClick={saveChanges}
                 className={`w-full py-2 rounded ${
-                  loading ? "bg-[#444]" : "bg-green-600 hover:bg-green-500"
+                  loading ? "bg-[#444]" : "bg-[#0e0e0e]/70 hover:bg-[#292929]/70"
                 }`}
                 disabled={loading}
               >
-                💾 Запази
+                Запази
               </button>
               <button
                 onClick={() => {
@@ -182,7 +182,7 @@ export default function FirmDashboardPage() {
                   setLogoFile(null);
                   setEditing(false);
                 }}
-                className="w-full py-2 bg-[#0e0e0e] hover:bg-[#292929] rounded-lg cursor-pointer"
+                className="w-full py-2 bg-[#0e0e0e]/70 hover:bg-[#292929]/70 rounded-lg cursor-pointer"
               >
                 Отказ
               </button>
@@ -190,16 +190,16 @@ export default function FirmDashboardPage() {
           ) : (
             <button
               onClick={() => setEditing(true)}
-              className="w-full py-2 bg-[#0e0e0e] hover:bg-[#292929] rounded-lg cursor-pointer"
+              className="w-full py-2 bg-[#0e0e0e]/70 hover:bg-[#292929]/70 rounded-lg cursor-pointer"
             >
-              ✏️ Редактирай
+              Редактирай
             </button>
           )}
           <button
             onClick={deleteFirm}
-            className="w-full py-2 bg-[#0e0e0e] hover:bg-[#292929] rounded-lg cursor-pointer"
+            className="w-full py-2 bg-[#0e0e0e]/70 hover:bg-[#292929]/70 rounded-lg cursor-pointer"
           >
-            🗑️ Изтрий
+            Изтрий
           </button>
         </div>
       </div>
