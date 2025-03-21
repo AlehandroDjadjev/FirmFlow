@@ -71,6 +71,7 @@ def get_prompt_file(path):
 
 class EditDeleteFirmView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
 
     def get_object(self, firm_id, user):
         return get_object_or_404(Firm, id=firm_id, user=user)
