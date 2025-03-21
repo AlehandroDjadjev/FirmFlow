@@ -69,11 +69,10 @@ export default function BusinessInfoPage() {
         <button
           onClick={handleButtonClick}
           disabled={descriptionWordCount > 500 || firmName.trim() === ""}
-          className={`mt-6 w-full py-3 text-lg font-medium rounded-lg transition-all duration-300 ${
-            descriptionWordCount > 500 || firmName.trim() === ""
-              ? "bg-[#222] text-[#555] cursor-not-allowed"
-              : "bg-[#181818] cursor-pointer text-white hover:bg-[#292929]"
-          }`}
+          className={`mt-6 w-full py-3 text-lg font-medium rounded-lg transition-all duration-300 ${descriptionWordCount > 500 || firmName.trim() === ""
+            ? "bg-[#222] text-[#555] cursor-not-allowed"
+            : "bg-[#181818] cursor-pointer text-white hover:bg-[#292929]"
+            }`}
         >
           Продължи
         </button>

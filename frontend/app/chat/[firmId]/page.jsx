@@ -22,7 +22,8 @@ export default function ChatPage() {
           },
         });
         const data = await res.json();
-        setChatHistory(data.chat_history);
+        // Ensure chatHistory is an array even if the property is missing.
+        setChatHistory(Array.isArray(data.interactions) ? data.interactions : []);
       } catch (error) {
         console.error("Error fetching chat history:", error);
       }
@@ -49,9 +50,10 @@ export default function ChatPage() {
         throw new Error("Грешка при изпращането на съобщението");
       }
       const data = await res.json();
+      // Use consistent keys for the message object.
       const newMessage = {
-        user: inputMessage.trim(),
-        ai: data.response,
+        user_prompt: inputMessage.trim(),
+        ai_response: data.response,
       };
       setChatHistory((prev) => [...prev, newMessage]);
       setInputMessage("");
@@ -63,14 +65,12 @@ export default function ChatPage() {
   };
 
   const handleCheckboxChange = (message, isChecked) => {
-    // Combine the message as a single string without altering its content.
+    // Combine the message text without altering its content.
     const combinedMessage = `Потребител: ${message.user_prompt}\nAI: ${message.ai_response}`;
     if (isChecked) {
       setSelectedMessages((prev) => [...prev, combinedMessage]);
     } else {
-      setSelectedMessages((prev) =>
-        prev.filter((msg) => msg !== combinedMessage)
-      );
+      setSelectedMessages((prev) => prev.filter((msg) => msg !== combinedMessage));
     }
   };
 
@@ -81,7 +81,7 @@ export default function ChatPage() {
     }
     try {
       const token = localStorage.getItem("access");
-      const res = await fetch(`http://localhost:8000/api/LLM/edit-main/${firmId}/`, {
+      const res = await fetch(`http://localhost:8000/api/LLM/firms/${firmId}/update-main-document/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -110,7 +110,7 @@ export default function ChatPage() {
         >
           Назад към Фирми
         </button>
-        {/* Optionally, you can list more firms here */}
+        {/* Optionally, add additional firm navigation here */}
       </div>
 
       {/* Chat Area */}
@@ -122,13 +122,11 @@ export default function ChatPage() {
           ) : (
             chatHistory.map((msg, index) => (
               <div key={index} className="flex items-start mb-4">
-                {/* Small checkbox added at the left */}
+                {/* Small checkbox added to the left */}
                 <input
                   type="checkbox"
                   className="mt-2 mr-2"
-                  onChange={(e) =>
-                    handleCheckboxChange(msg, e.target.checked)
-                  }
+                  onChange={(e) => handleCheckboxChange(msg, e.target.checked)}
                 />
                 <div>
                   <p className="bg-[#181818] p-2 rounded">

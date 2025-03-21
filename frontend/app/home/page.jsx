@@ -11,7 +11,7 @@ export default function HomePage() {
     async function fetchFirms() {
       try {
         const token = localStorage.getItem("access");
-        const res = await fetch("http://localhost:8000/api/LLM/firms/", {
+        const res = await fetch("http://localhost:8000/api/LLM/firms/list/", {
           headers: {
             "Authorization": token ? `Bearer ${token}` : "",
           },

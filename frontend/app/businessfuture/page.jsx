@@ -35,7 +35,7 @@ export default function BusinessFuturePage() {
     // Send complete firmData to API with the JWT token in headers
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/api/LLM/initialize_firm/", {
+      const response = await fetch("http://localhost:8000/api/LLM/firms/initialize/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
