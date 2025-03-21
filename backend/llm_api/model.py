@@ -29,12 +29,14 @@ load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-PINECONE_ENV = os.getenv("PINECONE_ENV")  # e.g. 'us-east-1-aws' or 'us-east1-gcp'
+# e.g. 'us-east-1-aws' or 'us-east1-gcp'
+PINECONE_ENV = os.getenv("PINECONE_ENV")
 
 INDEX_NAME = os.getenv("PINECONE_INDEX_NAME")
 
 # Embedding and Chat Models
-EMBEDDING_MODEL = os.getenv("PINECONE_EMBEDDING_MODEL") # Good for general embeddings
+# Good for general embeddings
+EMBEDDING_MODEL = os.getenv("PINECONE_EMBEDDING_MODEL")
 GPT_MODEL = os.getenv("GPT_MODEL")            # or "gpt-4"
 NAMESPACE = os.getenv("NAMESPACE")
 # Create OpenAI client
@@ -46,6 +48,8 @@ pc = Pinecone(api_key=PINECONE_API_KEY)
 index = pc.Index(INDEX_NAME)
 
 # ------------------- 1. Document Chunking ------------------- #
+
+
 def chunk_text(text: str, chunk_size=1000, overlap=100) -> List[str]:
     chunks = []
     start = 0
@@ -61,6 +65,8 @@ def chunk_text(text: str, chunk_size=1000, overlap=100) -> List[str]:
     return chunks
 
 # ------------------- 2. Generate Embeddings ------------------- #
+
+
 def get_embedding(text: str) -> List[float]:
     resp = openai_client.embeddings.create(
         model=EMBEDDING_MODEL,
@@ -69,6 +75,8 @@ def get_embedding(text: str) -> List[float]:
     return resp.data[0].embedding
 
 # ------------------- 3. Upsert Embeddings into Pinecone ------------------- #
+
+
 def upsert_chunks(chunks: List[str], metadata_prefix="Document"):
     vectors = []
 
@@ -82,6 +90,8 @@ def upsert_chunks(chunks: List[str], metadata_prefix="Document"):
     print(f"[INFO] Upserted {len(chunks)} chunks from '{metadata_prefix}'.")
 
 # ------------------- 4. Retrieve Relevant Chunks ------------------- #
+
+
 def query_pinecone(query_text: str, top_k=TOP_K) -> List[Tuple[str, float]]:
     query_emb = get_embedding(query_text)
     result = index.query(
@@ -91,10 +101,13 @@ def query_pinecone(query_text: str, top_k=TOP_K) -> List[Tuple[str, float]]:
         namespace=NAMESPACE
     )
 
-    matches = [(match.metadata["text"], match.score) for match in result.matches]
+    matches = [(match.metadata["text"], match.score)
+               for match in result.matches]
     return matches
 
 # ------------------- 5. Call GPT with Retrieved Context ------------------- #
+
+
 def get_gpt_answer(query: str, retrieved_chunks: List[Tuple[str, float]]) -> str:
     context_str = "".join([f"\n--- Chunk {i+1} (score: {score:.2f}) ---\n{chunk}\n"
                            for i, (chunk, score) in enumerate(retrieved_chunks)])
@@ -118,6 +131,8 @@ def get_gpt_answer(query: str, retrieved_chunks: List[Tuple[str, float]]) -> str
     return resp.choices[0].message.content
 
 # ------------------- 6. Simple CLI Integration ------------------- #
+
+
 def main():
     if len(sys.argv) < 2:
         print("Usage:")
@@ -153,6 +168,7 @@ def main():
 
     else:
         print(f"Unknown command: {command}")
+
 
 if __name__ == "__main__":
     main()

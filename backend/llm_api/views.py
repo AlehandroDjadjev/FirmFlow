@@ -13,6 +13,7 @@ from .models import AIInteraction, Document
 from .serializers import DocumentSerializer, AIInteractionSerializer
 from pinecone import Pinecone
 from dotenv import load_dotenv
+from .model import query_pinecone
 
 load_dotenv()  # this should run BEFORE os.getenv is called
 
@@ -118,7 +119,7 @@ class SubmitPromptView(generics.CreateAPIView):
             return Response({"error": "Prompt cannot be empty"}, status=status.HTTP_400_BAD_REQUEST)
 
         firm = get_object_or_404(Firm, id=firm_id)
-        main_document_text = MainDocument.objects.filter(firm=firm_id)
+        main_document_text = MainDocument.objects.filter(firm=firm_id)[0].text
 
         # extra document context - if id is included, include extra document for context
         document_context = ""
@@ -145,8 +146,9 @@ class SubmitPromptView(generics.CreateAPIView):
         full_system_prompt = (
             f"{get_prompt_file('systemPrompt.txt')}\n\n"
             f"### Retrieved Dataset Context ###\n{context_from_chunks}\n\n"
-            f"{main_document_text}{document_context}\n\n"
+            f"THIS IS THE MAIN DOCUMENT USE IT AT THE CORE OF YOUR USER RESPONSES:{main_document_text}THIS IS THE EXTRA DOCUMENT YOU SHOULD USE FOR CONTEXT:{document_context}\n\n"
             f"### Previous Interactions ###\n{conversation_history}\n\n"
+            f"###THIS IS CONTEXTUAL INFORMATION FROM THE BULGARIAN FIRM CREATION LAWS CONNECTED WITH THE USER PROMPT WHICH YOU MUST USE TO GIVE ACCURATE DEPICTION OF THE COMPANY STARTUP PROCESS: {query_pinecone(user_prompt)}"
             f"{get_prompt_file('extradocPrompt') if save_as_document else ''}"
         )
 
