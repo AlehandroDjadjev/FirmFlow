@@ -52,7 +52,7 @@ export default function BusinessFuturePage() {
       // Optionally process the response here if needed
       // After success, clear localStorage data and redirect to the home page
       localStorage.removeItem("firmData");
-      router.push("/");
+      router.push("/home");
     } catch (error) {
       setMessage(`Грешка: ${error.message}`);
     } finally {

@@ -59,17 +59,7 @@ def get_prompt_file(path):
             return file.read()
     else:
         return Response({"error": "No planPrompt file"}, status=status.HTTP_400_BAD_REQUEST)
-
-class FirmCreateLocationView(APIView):
-    parser_classes = (MultiPartParser, FormParser)
-
-    def post(self, request):
-        serializer = FirmSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
-
+    
 
 class CreateFirmView(generics.CreateAPIView):
     serializer_class = FirmSerializer
@@ -80,19 +70,22 @@ class CreateFirmView(generics.CreateAPIView):
         # fields for firm creation, also edit models.py
         firm_name = request.data.get("name", "").strip()
         firm_budget = request.data.get("budget", "").strip()
-        firm_location = request.data.get("future", "").strip()
+        firm_future = request.data.get("future", "").strip()
         firm_notes = request.data.get("description", "").strip()
+        firm_latitude = request.data.get("latitude", "")
+        firm_longtitude = request.data.get("longtitude", "")
+        firm_image = request.data.get("image", "").strip()
 
-        if not all([firm_name, firm_budget, firm_location]):
+        if not all([firm_name,firm_latitude, firm_longtitude]):
             return Response({"error": "Firm name is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        firm = Firm.objects.create(name=firm_name)
+        firm = Firm.objects.create(name=firm_name,description = firm_notes, latitude = firm_latitude, longtitude = firm_longtitude)
 
         # Create a single string for all fields
         content = (
             f"Name : {firm_name}\n"
             f"Firm Budget : {firm_budget}\n"
-            f"Desired Firm Location : {firm_location}\n"
+            f"Desired Firm Location : latitude: {firm_latitude} longtitude: {firm_longtitude}\n"
             f"Extra user descriptions / notes : {firm_notes}\n"
         )
         # big prompt
