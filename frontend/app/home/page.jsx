@@ -3,34 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function HomePage() {
-  const [firms, setFirms] = useState([
-    {
-      id: 1,
-      name: "TechNova Solutions",
-      location: "София, България",
-      budget: "Бюджет: 50,000 евро",
-    },
-    {
-      id: 2,
-      name: "GreenFuture Energy",
-      location: "Пловдив, България",
-      industry: "Възобновяема енергия",
-      team: "Екип: 300 души",
-      budget: "Бюджет: 120,000 евро",
-    },
-    {
-      id: 3,
-      name: "NextGen Robotics",
-      location: "Варна, България",
-      industry: "Роботика",
-      team: "Екип: 200 души",
-      budget: "Бюджет: 80,000 евро",
-    },
-  ]);
-  const [selectedIndex, setSelectedIndex] = useState(1);
+  const [firms, setFirms] = useState([]);
+  const [selectedFirm, setSelectedFirm] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -39,91 +15,105 @@ export default function HomePage() {
         const token = localStorage.getItem("access");
         const res = await fetch("http://localhost:8000/api/LLM/firms/list/", {
           headers: {
-            "Authorization": token ? `Bearer ${token}` : "",
+            Authorization: token ? `Bearer ${token}` : "",
           },
         });
         const data = await res.json();
-        // Assuming response structure: { firms: [ { id, name, ... }, ... ] }
-        setFirms(data.firms);
+        setFirms(data.firms || []);
       } catch (error) {
         console.error("Error fetching firms:", error);
       }
     }
     fetchFirms();
   }, []);
-  const handleNext = () => {
-    setSelectedIndex((prev) => (prev + 1) % firms.length);
-  };
-
-  const handlePrev = () => {
-    setSelectedIndex((prev) => (prev - 1 + firms.length) % firms.length);
-  };
 
   const handleSelectFirm = () => {
-    const selectedFirm = firms[selectedIndex];
-    router.push(`/chat/${selectedFirm.id}`);
+    if (selectedFirm) {
+      router.push(`/chat/${selectedFirm}`);
+    }
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
-      {/* Firm Selection Carousel */}
-      <div className="relative flex items-center justify-center h-[300px] mt-10">
+    <div className="min-h-screen bg-black text-white flex flex-col items-center">
+      {/* Navbar */}
+      <div className="fixed top-0 left-0 w-full bg-[#121212] py-4 px-6 flex items-center justify-between shadow-md z-10">
         <button
-          onClick={handlePrev}
-          className="absolute left-10 bg-gray-800 p-2 rounded-full hover:bg-gray-700 transition"
+          onClick={() => router.push("/")}
+          className="py-2 px-4 bg-[#1a1a1a] rounded-lg hover:bg-[#292929] transition cursor-pointer"
         >
-          <ChevronLeft size={30} />
+          Назад към началото
         </button>
-
-        <div className="flex gap-8 items-center">
-          {firms.map((firm, index) => (
-            <motion.div
-              key={firm.id}
-              className={`p-6 rounded-xl shadow-lg text-center transition ${index === selectedIndex
-                ? "scale-125 bg-blue-700"
-                : "scale-90 bg-gray-800 opacity-60"
-                }`}
-              animate={{
-                scale: index === selectedIndex ? 1.2 : 0.9,
-                opacity: index === selectedIndex ? 1 : 0.6,
-              }}
-            >
-              <h3 className="text-xl font-bold">{firm.name}</h3>
-              <p className="text-sm">{firm.location}</p>
-              <p className="text-sm">{firm.industry}</p>
-              <p className="text-sm">{firm.team}</p>
-              <p className="text-sm">{firm.budget}</p>
-            </motion.div>
-          ))}
-        </div>
-
-        <button
-          onClick={handleNext}
-          className="absolute right-10 bg-gray-800 p-2 rounded-full hover:bg-gray-700 transition"
-        >
-          <ChevronRight size={30} />
-        </button>
-      </div>
-
-      {/* Selection Button */}
-      <div className="flex justify-center mt-6">
-        <button
-          onClick={handleSelectFirm}
-          className="px-6 py-3 bg-blue-500 cursor-pointer rounded-lg text-lg font-semibold hover:bg-blue-600 transition"
-        >
-          Избери фирма
-        </button>
+        <h1 className="absolute left-1/2 transform -translate-x-1/2 text-2xl font-semibold">
+          Избор на фирма
+        </h1>
+        <div className="w-16" /> {/* Empty div for symmetry */}
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-grow items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold">Добре дошли!</h1>
-          <p className="text-lg text-gray-300">
-            Използвайте стрелките, за да изберете фирма, и натиснете "Избери
-            фирма".
-          </p>
-        </div>
+      <div className="w-full flex flex-col items-center mt-24 space-y-6">
+        {/* Stats Section */}
+        <motion.div
+          className="bg-[#1a1a1a] p-6 rounded-xl w-[400px] text-center shadow-lg"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h2 className="text-lg font-semibold mb-2">
+            Информация за платформата
+          </h2>
+          <p className="text-gray-400">Фирми в системата: {firms.length}</p>
+          <p className="text-gray-400">Анализирани проекти: 120+</p>
+        </motion.div>
+
+        {/* Selection Container */}
+        <motion.div
+          className="bg-[#121212] p-8 rounded-xl shadow-lg flex flex-col items-center w-[400px]"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h2 className="text-lg font-semibold mb-4">Изберете фирма:</h2>
+
+          {/* Dropdown Selection */}
+          <select
+            className="w-full p-3 rounded-lg bg-[#1a1a1a] text-white text-lg focus:outline-none cursor-pointer"
+            value={selectedFirm || ""}
+            onChange={(e) => setSelectedFirm(e.target.value)}
+          >
+            <option value="" disabled>
+              -- Изберете фирма --
+            </option>
+            {firms.map((firm) => (
+              <option key={firm.id} value={firm.id}>
+                {firm.name}
+              </option>
+            ))}
+          </select>
+
+          {/* Select Button */}
+          <button
+            onClick={handleSelectFirm}
+            disabled={!selectedFirm}
+            className={`mt-4 px-6 py-3 rounded-lg text-lg font-semibold transition cursor-pointer ${
+              selectedFirm
+                ? "bg-[#292929] hover:bg-[#3a3a3a]"
+                : "bg-gray-700 text-gray-400 cursor-not-allowed"
+            }`}
+          >
+            Потвърди
+          </button>
+        </motion.div>
+
+        {/* Button to Go Back to Hero Page */}
+        <motion.button
+          onClick={() => router.push("/")}
+          className="mt-4 px-6 py-3 bg-[#1a1a1a] rounded-lg text-lg font-semibold hover:bg-[#292929] transition cursor-pointer"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          Начална страница
+        </motion.button>
       </div>
     </div>
   );

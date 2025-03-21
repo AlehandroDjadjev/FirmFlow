@@ -35,14 +35,17 @@ export default function BusinessFuturePage() {
     // Send complete firmData to API with the JWT token in headers
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/api/LLM/firms/initialize/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": token ? `Bearer ${token}` : "",
-        },
-        body: JSON.stringify(firmData)
-      });
+      const response = await fetch(
+        "http://localhost:8000/api/LLM/firms/initialize/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+          body: JSON.stringify(firmData),
+        }
+      );
       if (!response.ok) {
         throw new Error("Грешка при изпращането на данните");
       }
@@ -78,10 +81,11 @@ export default function BusinessFuturePage() {
         <button
           onClick={handleButtonClick}
           disabled={wordCount > 500 || loading}
-          className={`mt-6 w-full py-3 text-lg font-medium rounded-lg transition-all duration-300 ${wordCount > 500 || loading
-            ? "bg-[#222] text-[#555] cursor-not-allowed"
-            : "bg-[#181818] cursor-pointer text-white hover:bg-[#292929]"
-            }`}
+          className={`mt-6 w-full py-3 text-lg font-medium rounded-lg transition-all duration-300 ${
+            wordCount > 500 || loading
+              ? "bg-[#222] text-[#555] cursor-not-allowed"
+              : "bg-[#181818] cursor-pointer text-white hover:bg-[#292929]"
+          }`}
         >
           {loading ? "Изчакване..." : "Завърши и изпрати"}
         </button>
@@ -89,7 +93,7 @@ export default function BusinessFuturePage() {
       </div>
 
       {/* Right Side - Info Section with Gradient */}
-      <div className="w-1/2 min-h-screen flex justify-center items-center px-16 bg-gradient-to-br from-orange-400 to-red-600 to-red-400 text-white bg-opacity-80 backdrop-blur-lg shadow-lg">
+      <div className="w-1/2 min-h-screen flex justify-center items-center px-16 bg-gradient-to-br from-orange-4 00 to-red-600 to-red-400 text-white bg-opacity-80 backdrop-blur-lg shadow-lg">
         <div className="bg-black/90 rounded-lg max-w-lg w-full p-8 shadow-lg">
           <h2 className="text-2xl font-bold mb-4 text-center">
             Как изглежда бъдещето?
