@@ -1,8 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import React, { useState, useEffect, useRef } from "react";
-import Script from "next/script";
+import React, { useState, useEffect } from "react";
 import apiFetch from "@/app/apifetch";
 
 export default function FirmDashboardPage() {
@@ -11,6 +10,7 @@ export default function FirmDashboardPage() {
   const [firm, setFirm] = useState(null);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ name: "", description: "" });
+  const [logoFile, setLogoFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const token = typeof window !== "undefined" ? localStorage.getItem("access") : null;
@@ -24,29 +24,39 @@ export default function FirmDashboardPage() {
         Authorization: `Bearer ${token}`,
       },
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         setFirm(data);
         setForm({ name: data.name, description: data.description });
       })
-      .catch(err => console.error("Error loading firm:", err));
+      .catch((err) => console.error("Error loading firm:", err));
   }, [firmId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleLogoChange = (e) => {
+    setLogoFile(e.target.files[0]);
   };
 
   const saveChanges = async () => {
     setLoading(true);
     try {
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("description", form.description);
+      if (logoFile) {
+        formData.append("image", logoFile);
+      }
+
       const res = await fetch(`http://localhost:8000/api/LLM/firm/edit/${firmId}/`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
+        body: formData,
       });
 
       if (!res.ok) throw new Error("Failed to update firm");
@@ -54,6 +64,7 @@ export default function FirmDashboardPage() {
       const updated = await res.json();
       setFirm(updated);
       setEditing(false);
+      setLogoFile(null);
     } catch (err) {
       console.error(err);
       alert("Неуспешно запазване.");
@@ -87,7 +98,29 @@ export default function FirmDashboardPage() {
     <div className="min-h-screen bg-gradient-to-b from-purple-600 to-pink-600 text-white flex items-center justify-center px-10">
       <div className="bg-[#121212]/80 p-10 rounded-xl max-w-2xl w-full shadow-xl">
         <h1 className="text-3xl font-bold mb-6 text-center">Настройки на фирмата</h1>
-  
+
+        {firm.image && (
+          <div className="mb-6 text-center">
+            <img
+              src={`http://localhost:8000${firm.image}`}
+              alt="Firm Logo"
+              className="h-32 mx-auto rounded border border-gray-700"
+            />
+          </div>
+        )}
+
+        {editing && (
+          <div className="mb-6">
+            <label className="block text-sm mb-2">Качи ново лого:</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleLogoChange}
+              className="w-full bg-black text-white border border-[#333] p-2 rounded"
+            />
+          </div>
+        )}
+
         <div className="mb-6">
           <label className="block text-sm mb-2 text-gray-400">Име на фирмата</label>
           {editing ? (
@@ -136,7 +169,9 @@ export default function FirmDashboardPage() {
             <>
               <button
                 onClick={saveChanges}
-                className={`w-full py-2 cursor-pointer rounded-lg ${loading ? "bg-[#444]" : "bg-[#0e0e0e] hover:bg-[#292929]"}`}
+                className={`w-full py-2 rounded ${
+                  loading ? "bg-[#444]" : "bg-green-600 hover:bg-green-500"
+                }`}
                 disabled={loading}
               >
                 💾 Запази
@@ -144,6 +179,7 @@ export default function FirmDashboardPage() {
               <button
                 onClick={() => {
                   setForm({ name: firm.name, description: firm.description });
+                  setLogoFile(null);
                   setEditing(false);
                 }}
                 className="w-full py-2 bg-[#0e0e0e] hover:bg-[#292929] rounded-lg cursor-pointer"

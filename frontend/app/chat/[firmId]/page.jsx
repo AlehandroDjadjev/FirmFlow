@@ -6,6 +6,7 @@ import  apiFetch  from "@/app/apifetch";
 
 export default function ChatPage() {
   const [chatHistory, setChatHistory] = useState([]);
+  const [firmName, setFirmName] = useState("");
   const [selectedIndexes, setSelectedIndexes] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,6 +24,13 @@ export default function ChatPage() {
       .then((res) => res.json())
       .then((data) => setChatHistory(data.interactions || []))
       .catch((err) => console.error("Chat history error:", err));
+
+    apiFetch(`http://localhost:8000/api/LLM/firm/${firmId}/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => setFirmName(data.name))
+      .catch((err) => console.error("Name fetching error:", err));
 
     fetch(`http://localhost:8000/api/LLM/documents/main/${firmId}/`, {
       headers: {
@@ -68,6 +76,7 @@ export default function ChatPage() {
     }
   };
 
+
   const downloadContext = (contextText, index) => {
     const blob = new Blob([contextText], { type: "text/plain" });
     const link = document.createElement("a");
@@ -95,7 +104,7 @@ export default function ChatPage() {
           >
             Назад
           </button>
-          <h2 className="text-xl font-bold">Фирма ID: {firmId}</h2>
+          <h2 className="text-xl font-bold">{firmName}</h2>
           <button
             onClick={() => router.push("/rag_add")}
             className="bg-black px-4 py-2 rounded hover:bg-black/70 transition"
