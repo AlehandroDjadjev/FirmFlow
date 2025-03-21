@@ -19,7 +19,7 @@ export default function FirmDashboardPage() {
     if (!firmId || !token) return;
 
     apiFetch(`http://localhost:8000/api/LLM/firm/${firmId}/`, {
-      method: "POST",
+      method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
       },
