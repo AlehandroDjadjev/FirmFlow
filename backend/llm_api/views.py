@@ -69,7 +69,24 @@ def get_prompt_file(path):
     else:
         return Response({"error": "No planPrompt file"}, status=status.HTTP_400_BAD_REQUEST)
 
-    
+class EditDeleteFirmView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, firm_id, user):
+        return get_object_or_404(Firm, id=firm_id, user=user)
+
+    def put(self, request, firm_id):
+        firm = Firm.objects.filter(id = firm_id).first()
+        serializer = FirmSerializer(firm, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, firm_id):
+        firm = Firm.objects.filter(id = firm_id).first()
+        firm.delete()
+        return Response({"message": "Firm deleted successfully."}, status=status.HTTP_204_NO_CONTENT) 
 
 class CreateFirmView(generics.CreateAPIView):
     serializer_class = FirmSerializer
@@ -82,20 +99,17 @@ class CreateFirmView(generics.CreateAPIView):
         firm_budget = request.data.get("budget", "").strip()
         firm_future = request.data.get("future", "").strip()
         firm_notes = request.data.get("description", "").strip()
-        firm_latitude = request.data.get("latitude", "")
-        firm_longtitude = request.data.get("longtitude", "")
         firm_image = request.data.get("image", "").strip()
 
-        if not all([firm_name,firm_latitude, firm_longtitude]):
+        if not all([firm_name]):
             return Response({"error": "Firm name is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        firm = Firm.objects.create(name=firm_name,description = firm_notes, latitude = firm_latitude, longtitude = firm_longtitude)
+        firm = Firm.objects.create(name=firm_name,description = firm_notes)
 
         # Create a single string for all fields
         content = (
             f"Name : {firm_name}\n"
             f"Firm Budget : {firm_budget}\n"
-            f"Desired Firm Location : latitude: {firm_latitude} longtitude: {firm_longtitude}\n"
             f"Extra user descriptions / notes : {firm_notes}\n"
         )
         # big prompt

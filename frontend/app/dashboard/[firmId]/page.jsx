@@ -1,99 +1,172 @@
 "use client";
 
+import { useParams, useRouter } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
 import Script from "next/script";
-import { useParams } from "next/navigation";
+import { apiFetch } from "../apifetch";
 
-export default function DashboardPage() {
-  const [firm, setFirm] = useState(null);
+export default function FirmDashboardPage() {
   const { firmId } = useParams();
-  const mapRef = useRef(null);
-  const [mapReady, setMapReady] = useState(false);
+  const router = useRouter();
+  const [firm, setFirm] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ name: "", description: "" });
+  const [loading, setLoading] = useState(false);
 
-  const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const token = typeof window !== "undefined" ? localStorage.getItem("access") : null;
 
   useEffect(() => {
-    const token = localStorage.getItem("access");
     if (!firmId || !token) return;
 
-    fetch(`http://localhost:8000/api/LLM/firm/${firmId}/`, {
+    apiFetch(`http://localhost:8000/api/LLM/firm/${firmId}/`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
     })
-      .then((res) => res.json())
-      .then(setFirm)
-      .catch((err) => console.error("Error fetching firm:", err));
+      .then(res => res.json())
+      .then(data => {
+        setFirm(data);
+        setForm({ name: data.name, description: data.description });
+      })
+      .catch(err => console.error("Error loading firm:", err));
   }, [firmId]);
 
-  useEffect(() => {
-    if (firm?.location && window.google && mapRef.current && mapReady) {
-      const geocoder = new window.google.maps.Geocoder();
-      geocoder.geocode({ address: firm.location }, (results, status) => {
-        if (status === "OK") {
-          const map = new window.google.maps.Map(mapRef.current, {
-            center: results[0].geometry.location,
-            zoom: 14,
-          });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
 
-          new window.google.maps.Marker({
-            position: results[0].geometry.location,
-            map,
-          });
-        } else {
-          console.error("Geocoding failed:", status);
-        }
+  const saveChanges = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`http://localhost:8000/api/LLM/firm/edit/${firmId}/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
       });
+
+      if (!res.ok) throw new Error("Failed to update firm");
+
+      const updated = await res.json();
+      setFirm(updated);
+      setEditing(false);
+    } catch (err) {
+      console.error(err);
+      alert("Неуспешно запазване.");
+    } finally {
+      setLoading(false);
     }
-  }, [firm, mapReady]);
+  };
+
+  const deleteFirm = async () => {
+    if (!confirm("Сигурен ли си, че искаш да изтриеш фирмата?")) return;
+    try {
+      const res = await fetch(`http://localhost:8000/api/LLM/firm/edit/${firmId}/`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        router.push("/home");
+      } else {
+        alert("Грешка при изтриването.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (!firm) return <div className="text-white p-6">Зареждане...</div>;
 
   return (
-    <>
-      {/* Load Google Maps script only on the client */}
-      <Script
-        src={`https://maps.googleapis.com/maps/api/js?key=AIzaSyCMMqnynUdYEbtnnhGUGrjeWPVU2x2GPj0`}
-        strategy="afterInteractive"
-        onLoad={() => setMapReady(true)}
-      />
+    <div className="min-h-screen bg-black text-white flex items-center justify-center px-10">
+      <div className="bg-[#0e0e0e] border border-[#1a1a1a] p-10 rounded-xl max-w-2xl w-full shadow-xl">
+        <h1 className="text-3xl font-bold mb-6 text-center">Настройки на фирмата</h1>
 
-      <div className="min-h-screen bg-black text-white p-10">
-        <div className="max-w-5xl mx-auto bg-[#0e0e0e] border border-[#1a1a1a] rounded-lg shadow-lg p-10 flex flex-col gap-8">
-          {!firm ? (
-            <p>Зареждане...</p>
+        <div className="mb-6">
+          <label className="block text-sm mb-2">Име на фирмата</label>
+          {editing ? (
+            <input
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              className="w-full p-3 rounded bg-black text-white border border-[#333]"
+            />
           ) : (
-            <>
-              {/* Header */}
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                {firm.logo ? (
-                  <img
-                    src={firm.logo}
-                    alt="Firm Logo"
-                    className="w-28 h-28 object-cover rounded-lg border border-gray-700"
-                  />
-                ) : (
-                  <div className="text-gray-500 italic">Няма качено лого.</div>
-                )}
-                <div>
-                  <h1 className="text-3xl font-bold">{firm.name}</h1>
-                  <p className="text-gray-400 mt-2">{firm.description}</p>
-                </div>
-              </div>
-
-              {/* Location */}
-              <div>
-                <h2 className="text-xl font-semibold mb-2">Локация</h2>
-                <p className="mb-2 text-gray-400">{firm.location}</p>
-                <div
-                  ref={mapRef}
-                  className="w-full h-64 rounded-lg border border-[#222]"
-                />
-              </div>
-            </>
+            <p className="text-lg">{firm.name}</p>
           )}
         </div>
+
+        <div className="mb-6">
+          <label className="block text-sm mb-2">Описание</label>
+          {editing ? (
+            <textarea
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              className="w-full p-3 h-24 rounded bg-black text-white border border-[#333]"
+            />
+          ) : (
+            <p className="text-gray-300">{firm.description || "Без описание"}</p>
+          )}
+        </div>
+
+        <div className="flex justify-between gap-4">
+          <button
+            onClick={() => router.push(`/chat/${firmId}`)}
+            className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-500 transition w-full"
+          >
+            💬 Към чата
+          </button>
+          <button
+            onClick={() => router.push(`/home`)}
+            className="bg-purple-600 px-4 py-2 rounded hover:bg-purple-500 transition w-full"
+          >
+            📊 Обратно към началната страница
+          </button>
+        </div>
+
+        <div className="flex justify-between gap-4 mt-6">
+          {editing ? (
+            <>
+              <button
+                onClick={saveChanges}
+                className={`w-full py-2 rounded ${loading ? "bg-[#444]" : "bg-green-600 hover:bg-green-500"}`}
+                disabled={loading}
+              >
+                💾 Запази
+              </button>
+              <button
+                onClick={() => {
+                  setForm({ name: firm.name, description: firm.description });
+                  setEditing(false);
+                }}
+                className="w-full py-2 bg-gray-700 hover:bg-gray-600 rounded"
+              >
+                Отказ
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setEditing(true)}
+              className="w-full py-2 bg-yellow-600 hover:bg-yellow-500 rounded"
+            >
+              ✏️ Редактирай
+            </button>
+          )}
+          <button
+            onClick={deleteFirm}
+            className="w-full py-2 bg-red-600 hover:bg-red-500 rounded"
+          >
+            🗑️ Изтрий
+          </button>
+        </div>
       </div>
-    </>
+    </div>
   );
 }

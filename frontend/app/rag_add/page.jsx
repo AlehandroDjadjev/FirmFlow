@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { apiFetch } from "../apifetch";
 
 export default function RAGUploadPage() {
   const [ragText, setRagText] = useState("");
   const [ragUrl, setRagUrl] = useState("");
   const [ragFile, setRagFile] = useState(null);
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -41,7 +44,7 @@ export default function RAGUploadPage() {
     setMessage("");
 
     try {
-      const response = await fetch("http://localhost:8000/api/LLM/rag/", {
+      const response = await apiFetch("http://localhost:8000/api/LLM/rag/", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -116,6 +119,13 @@ export default function RAGUploadPage() {
           }`}
         >
           {loading ? "Изчакване..." : "Изпрати към RAG"}
+        </button>
+
+        <button
+          onClick={() => router.push("/home")}
+          className="w-full py-3 text-lg font-medium bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all duration-300"
+        >
+          ⬅️ Назад към началото
         </button>
 
         {message && <p className="text-white">{message}</p>}

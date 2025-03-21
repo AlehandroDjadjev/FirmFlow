@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { apiFetch } from "../apifetch";
 
 export default function HomePage() {
   const [firms, setFirms] = useState([]);
@@ -13,7 +14,7 @@ export default function HomePage() {
     async function fetchFirms() {
       try {
         const token = localStorage.getItem("access");
-        const res = await fetch("http://localhost:8000/api/LLM/firms/list/", {
+        const res = await apiFetch("http://localhost:8000/api/LLM/firms/list/", {
           headers: {
             Authorization: token ? `Bearer ${token}` : "",
           },
@@ -29,7 +30,7 @@ export default function HomePage() {
 
   const handleSelectFirm = () => {
     if (selectedFirm) {
-      router.push(`/chat/${selectedFirm}`);
+      router.push(`/dashboard/${selectedFirm}`);
     }
   };
 

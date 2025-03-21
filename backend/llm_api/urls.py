@@ -3,7 +3,7 @@ from .views import (
     CreateFirmView, SubmitPromptView, DocumentUploadView,
     DocumentDeleteView, ListFirmDocumentsView, ListFirmsView,
     UpdateMainDocumentView, UpdateFirmDocumentView, ListFirmInteractionsView, EditMainDocumentAIView, RAGUploadView,  GetFirm,
-    GetMainDocumentView
+    GetMainDocumentView, EditDeleteFirmView
 )
 # intiates a request with the llm, a firm id is included so the chat can be assosiated with a firm
 # creates a firm and a main plan documents assosiated with it
@@ -35,4 +35,5 @@ urlpatterns = [
     #path("firms/location/", FirmCreateLocationView.as_view(), name="create-firm-with-location"),
     path("firm/<int:firm_id>/", GetFirm.as_view(), name="get_firm"),
     path("documents/main/<int:firm_id>/", GetMainDocumentView.as_view(), name="get_firm_document"),
+    path("firm/edit/<int:firm_id>/", EditDeleteFirmView.as_view(), name="edit_delete_firm"),
 ]

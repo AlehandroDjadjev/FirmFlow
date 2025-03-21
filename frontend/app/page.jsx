@@ -74,15 +74,15 @@ export default function Hero() {
   };
 
   function getRefreshToken() {
-    return localStorage.getItem("refresh_token");
+    return localStorage.getItem("refresh");
   }
 
   async function logout() {
     try {
-      const refreshToken = localStorage.getItem("refresh_token");
+      const refreshToken = localStorage.getItem("refresh");
       if (!refreshToken || checkTokenExpiration(refreshToken)) {
         localStorage.removeItem("access");
-        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("refresh");
         location.reload(true);
         return;
       }
