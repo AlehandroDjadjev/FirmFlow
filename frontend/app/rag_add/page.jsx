@@ -3,26 +3,39 @@
 import React, { useState } from "react";
 
 export default function RAGUploadPage() {
-  const [rag_EXTRA, setText] = useState("");
+  const [ragText, setRagText] = useState("");
+  const [ragUrl, setRagUrl] = useState("");
+  const [ragFile, setRagFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleTextChange = (e) => {
-    setText(e.target.value);
-  };
-
-  const wordCount = rag_EXTRA
+  const wordCount = ragText
     .trim()
     .split(/\s+/)
     .filter((word) => word.length > 0).length;
 
   const handleSubmit = async () => {
+    const token = localStorage.getItem("access");
+
+    if (!token) {
+      alert("Липсва токен за достъп.");
+      return;
+    }
+
+    if (!ragText && !ragUrl && !ragFile) {
+      alert("Моля, попълни текст, линк или качи PDF файл.");
+      return;
+    }
+
     if (wordCount > 500) {
       alert("Текстът не трябва да надвишава 500 думи.");
       return;
     }
 
-    const token = localStorage.getItem("access");
+    const formData = new FormData();
+    if (ragText) formData.append("rag_EXTRA", ragText);
+    if (ragUrl) formData.append("url", ragUrl);
+    if (ragFile) formData.append("pdf_file", ragFile);
 
     setLoading(true);
     setMessage("");
@@ -31,22 +44,23 @@ export default function RAGUploadPage() {
       const response = await fetch("http://localhost:8000/api/LLM/rag/", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Authorization" : `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ rag_EXTRA }),
+        body: formData,
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Грешка при качване на текста.");
+        throw new Error(data.error || "Грешка при качване.");
       }
 
-      setMessage("Успешно изпратихме информацията в системата.");
-      setText("");
+      setMessage("✅ Успешно изпратихме информацията в системата.");
+      setRagText("");
+      setRagUrl("");
+      setRagFile(null);
     } catch (error) {
-      setMessage(`Грешка: ${error.message}`);
+      setMessage(`❌ Грешка: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -54,54 +68,71 @@ export default function RAGUploadPage() {
 
   return (
     <div className="flex min-h-screen bg-black">
-      {/* Left side: input */}
-      <div className="w-1/2 min-h-screen flex flex-col justify-center px-20 bg-[#0a0a0a]">
-        <h2 className="text-3xl font-semibold text-white mb-6">
+      {/* Left side: Upload Form */}
+      <div className="w-1/2 min-h-screen flex flex-col justify-center px-20 bg-[#0a0a0a] space-y-6">
+        <h2 className="text-3xl font-semibold text-white">
           Качи информация към RAG модела
         </h2>
-        <div className="relative">
+
+        <div>
+          <label className="text-white block mb-2">Текст:</label>
           <textarea
-            className="w-full h-52 p-4 text-white bg-[#0e0e0e] border border-[#1a1a1a] rounded-lg focus:ring-2 focus:ring-[#222] focus:outline-none resize-none transition-all duration-300"
-            placeholder="Въведи текста тук..."
-            value={rag_EXTRA}
-            onChange={handleTextChange}
-          ></textarea>
-          <span className="absolute top-2 right-3 text-sm text-[#666]">
-            {wordCount}/500
-          </span>
+            className="w-full h-32 p-4 text-white bg-[#0e0e0e] border border-[#1a1a1a] rounded-lg"
+            placeholder="Въведи текст..."
+            value={ragText}
+            onChange={(e) => setRagText(e.target.value)}
+          />
+          <span className="text-sm text-[#666]">{wordCount}/500 думи</span>
         </div>
+
+        <div>
+          <label className="text-white block mb-2">URL линк:</label>
+          <input
+            type="text"
+            className="w-full p-3 text-white bg-[#0e0e0e] border border-[#1a1a1a] rounded-lg"
+            placeholder="https://example.com"
+            value={ragUrl}
+            onChange={(e) => setRagUrl(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="text-white block mb-2">Качи PDF файл:</label>
+          <input
+            type="file"
+            accept=".pdf"
+            className="text-white"
+            onChange={(e) => setRagFile(e.target.files[0])}
+          />
+        </div>
+
         <button
           onClick={handleSubmit}
-          disabled={wordCount > 500 || loading}
-          className={`mt-6 w-full py-3 text-lg font-medium rounded-lg transition-all duration-300 ${
-            wordCount > 500 || loading
+          disabled={loading}
+          className={`w-full py-3 text-lg font-medium rounded-lg transition-all duration-300 ${
+            loading
               ? "bg-[#222] text-[#555] cursor-not-allowed"
               : "bg-[#181818] cursor-pointer text-white hover:bg-[#292929]"
           }`}
         >
           {loading ? "Изчакване..." : "Изпрати към RAG"}
         </button>
-        {message && <p className="mt-4 text-white">{message}</p>}
+
+        {message && <p className="text-white">{message}</p>}
       </div>
 
-      {/* Right side: info */}
-      <div className="w-1/2 min-h-screen flex justify-center items-center px-16 bg-gradient-to-br from-purple-600 to-indigo-800 text-white bg-opacity-80 backdrop-blur-lg shadow-lg">
+      {/* Right side: Info Section */}
+      <div className="w-1/2 min-h-screen flex justify-center items-center px-16 bg-gradient-to-br from-purple-600 to-indigo-800 text-white">
         <div className="bg-black/90 rounded-lg max-w-lg w-full p-8 shadow-lg">
-          <h2 className="text-2xl font-bold mb-4 text-center">
-            Какво да качиш?
-          </h2>
-          <p className="text-left text-gray-300 leading-relaxed text-center">
-            Това поле е предназначено за качване на текстова информация, която
-            ще бъде използвана от нашия AI модел, за да дава по-информирани
-            отговори и предложения.
+          <h2 className="text-2xl font-bold mb-4 text-center">Какво да качиш?</h2>
+          <p className="text-gray-300 text-center mb-4">
+            Използвай текст, PDF файлове или линкове, за да обучим модела да бъде по-информиран.
           </p>
-          <h3 className="mt-6 text-xl font-semibold text-center">
-            Примери за подходяща информация:
-          </h3>
-          <ul className="list-disc pl-6 text-lg text-gray-400 space-y-2">
-            <li className="text-left">Маркетингова стратегия</li>
-            <li className="text-left">Описания на продукти и услуги</li>
-            <li className="text-left">Проучвания на пазара</li>
+          <ul className="list-disc pl-6 space-y-2 text-gray-400 text-lg">
+            <li>Маркетингови стратегии</li>
+            <li>Правни документи (PDF)</li>
+            <li>Описания на услуги или продукти</li>
+            <li>Информация от уебсайтове</li>
           </ul>
         </div>
       </div>

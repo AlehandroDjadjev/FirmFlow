@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (
     CreateFirmView, SubmitPromptView, DocumentUploadView,
     DocumentDeleteView, ListFirmDocumentsView, ListFirmsView,
-    UpdateMainDocumentView, UpdateFirmDocumentView, ListFirmInteractionsView, EditMainDocumentAIView, RAGUploadView
+    UpdateMainDocumentView, UpdateFirmDocumentView, ListFirmInteractionsView, EditMainDocumentAIView, RAGUploadView,  GetFirm,
+    GetMainDocumentView
 )
 # intiates a request with the llm, a firm id is included so the chat can be assosiated with a firm
 # creates a firm and a main plan documents assosiated with it
@@ -31,4 +32,7 @@ urlpatterns = [
          name="list_firm_documents_view"),
     path("rag/", RAGUploadView.as_view(),
         name="list_firm_documents_view"),
+    #path("firms/location/", FirmCreateLocationView.as_view(), name="create-firm-with-location"),
+    path("firm/<int:firm_id>/", GetFirm.as_view(), name="get_firm"),
+    path("documents/main/<int:firm_id>/", GetMainDocumentView.as_view(), name="get_firm"),
 ]
