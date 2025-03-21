@@ -34,7 +34,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center">
+    <div className="min-h-screen bg-gradient-to-b from-yellow-300 to-pink-400 text-white flex flex-col items-center">
       {/* Navbar */}
       <div className="fixed top-0 left-0 w-full bg-[#121212] py-4 px-6 flex items-center justify-between shadow-md z-10">
         <button
