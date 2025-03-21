@@ -14,35 +14,34 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  console.log("Submitting form..."); // Debugging
+    console.log("Submitting form..."); // Debugging
 
-  setError(null); // Reset errors
+    setError(null); // Reset errors
 
-  try {
-    const response = await fetch("http://localhost:8000/auth/signup/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+    try {
+      const response = await fetch("http://localhost:8000/auth/signup/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-    if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.detail || "Signup failed");
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || "Signup failed");
+      }
+
+      const data = await response.json(); // Get the response data here
+
+      // Save tokens in localStorage
+      router.push("/login"); // Redirect to login page on success
+    } catch (err) {
+      setError(err.message);
     }
-
-    // Save tokens in localStorage
-    localStorage.setItem("access", data.access);
-    localStorage.setItem("refresh", data.refresh);
-
-    router.push("/login"); // Redirect to login page on success
-  } catch (err) {
-    setError(err.message);
-  }
   };
 
   return (
     <div className="flex justify-center items-center h-screen bg-black">
-      <div className="bg-black border border-gray-800 p-8 rounded-xl shadow-lg w-80 text-white">
+      <div className="bg-black border border-[#1a1a1a] p-8 rounded-xl shadow-lg w-80 text-white">
         <h2 className="text-2xl font-bold mb-4 text-center">Регистрация</h2>
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
@@ -53,7 +52,7 @@ export default function Signup() {
             placeholder="Име"
             value={formData.username}
             onChange={handleChange}
-            className="w-full p-2 mb-3 rounded bg-gray-800 text-white outline-none"
+            className="w-full p-2 mb-3 rounded bg-[#0e0e0e] text-white outline-none"
             required
           />
           <input
@@ -62,7 +61,7 @@ export default function Signup() {
             placeholder="Имейл"
             value={formData.email}
             onChange={handleChange}
-            className="w-full p-2 mb-3 rounded bg-gray-800 text-white outline-none"
+            className="w-full p-2 mb-3 rounded bg-[#0e0e0e] text-white outline-none"
             required
           />
           <input
@@ -71,14 +70,14 @@ export default function Signup() {
             placeholder="Парола"
             value={formData.password}
             onChange={handleChange}
-            className="w-full p-2 mb-3 rounded bg-gray-800 text-white outline-none"
+            className="w-full p-2 mb-3 rounded bg-[#0e0e0e] text-white outline-none"
             required
           />
 
           <div className="flex justify-center">
             <button
               type="submit"
-              className="w-40 cursor-pointer bg-gray-700 p-2 rounded-xl hover:bg-gray-600 transition text-white"
+              className="w-40 cursor-pointer bg-[#181818] p-2 rounded-xl hover:bg-[#292929] transition text-white"
             >
               Регистрирай се
             </button>
@@ -95,4 +94,3 @@ export default function Signup() {
     </div>
   );
 }
-

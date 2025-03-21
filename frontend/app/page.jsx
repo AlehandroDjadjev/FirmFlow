@@ -1,54 +1,140 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import jwt_decode from "jwt-decode";  // Import jwt_decode
+import {
+  PaperClipIcon,
+  FolderIcon,
+  QuestionMarkCircleIcon,
+  DocumentTextIcon,
+} from "@heroicons/react/24/outline";
 
 export default function Hero() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
 
-  // Check authentication on mount
   useEffect(() => {
-    const token = localStorage.getItem("access");
-    if (token) {
-      try {
-        const decoded = jwt_decode(token);  // Decode the token
-        const isExpired = decoded.exp * 1000 < Date.now();  // Check if the token is expired
-        if (!isExpired) {
-          setIsAuthenticated(true);  // Set to true if token is valid
-        } else {
-          localStorage.removeItem("access");  // Remove expired token
+    const checkAuthentication = async () => {
+      const token = localStorage.getItem("access");
+      if (token) {
+        try {
+          const isExpired = checkTokenExpiration(token);
+          if (!isExpired) {
+            setIsAuthenticated(true);
+          } else {
+            localStorage.removeItem("access");
+            setIsAuthenticated(false);
+            const refreshToken = getRefreshToken();
+            if (refreshToken) {
+              const refreshResponse = await fetch(
+                "http://localhost:8000/auth/token/refresh/",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ refresh: refreshToken }),
+                }
+              );
+              if (refreshResponse.ok) {
+                const data = await refreshResponse.json();
+                localStorage.setItem("access", data.access);
+                setIsAuthenticated(true);
+              } else {
+                localStorage.removeItem("access");
+                setIsAuthenticated(false);
+                router.push("/login");
+              }
+            } else {
+              router.push("/login");
+            }
+          }
+        } catch (error) {
+          setIsAuthenticated(false);
+          router.push("/signup");
         }
-      } catch (error) {
-        console.error("Error decoding token:", error);  // Handle decoding errors
+      } else {
+        setIsAuthenticated(false);
+        router.push("/signup");
       }
-    }
-  }, []);  // Runs once on component mount
+    };
+    checkAuthentication();
+  }, []);
+
+  const decodeToken = (token) => {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    return JSON.parse(atob(parts[1]));
+  };
+
+  const checkTokenExpiration = (token) => {
+    const decoded = decodeToken(token);
+    if (!decoded) return true;
+    return decoded.exp * 1000 < Date.now();
+  };
+
+  function getRefreshToken() {
+    return localStorage.getItem("refresh_token");
+  }
+
+  async function logout() {
+    try {
+      const refreshToken = localStorage.getItem("refresh_token");
+      if (!refreshToken || checkTokenExpiration(refreshToken)) {
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh_token");
+        location.reload(true);
+        return;
+      }
+      const response = await fetch("http://localhost:8000/auth/logout/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
+      if (response.ok) {
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh_token");
+        location.reload(true);
+      }
+    } catch (error) {}
+  }
 
   return (
-    <div className="relative min-h-screen bg-black text-white flex flex-col items-center justify-center px-6">
-      {/* Background Blur Effect */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-md" />
-
-      {/* Content */}
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-400 via-purple-600 to-purple-900 text-white flex flex-col items-center justify-center px-6 transition-all duration-500">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-xl" />
       <div className="relative w-full max-w-4xl text-center">
-        {/* Title */}
         <h1 className="text-4xl font-bold text-gray-200 mb-4">FirmFlow</h1>
-
-        {/* Subtitle */}
         <h2 className="text-2xl font-medium text-gray-400 mb-6">
           Имате идея за бизнес, но не знаете откъде да започнете?
         </h2>
-
-        {/* Features Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 justify-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-30 justify-center">
           {[
-            { icon: "📜", text: "Генерирайте детайлен бизнес план само с няколко клика." },
-            { icon: "📂", text: "Качвайте документи и получавайте персонализирани анализи." },
-            { icon: "❓", text: "Задавайте въпроси и получавайте експертни отговори в реално време." },
-            { icon: "📑", text: "Създавайте специализирани документи – от правни консултации до маркетинг стратегии." }
+            {
+              icon: <PaperClipIcon className="h-12 w-12 text-gray-500" />,
+              text: "Генерирайте детайлен бизнес план само с няколко клика.",
+            },
+            {
+              icon: <FolderIcon className="h-12 w-12 text-gray-500" />,
+              text: "Качвайте документи и получавайте персонализирани анализи.",
+            },
+            {
+              icon: (
+                <QuestionMarkCircleIcon className="h-12 w-12 text-gray-500" />
+              ),
+              text: "Задавайте въпроси и получавайте експертни отговори в реално време.",
+            },
+            {
+              icon: <DocumentTextIcon className="h-12 w-12 text-gray-500" />,
+              text: "Създавайте специализирани документи – от правни консултации до маркетинг стратегии.",
+            },
           ].map((item, index) => (
-            <div key={index} className="relative w-32 h-32 flex items-center justify-center bg-gray-900 rounded-xl transition-all duration-300 hover:bg-gray-700 group">
-              <span className="absolute inset-0 flex items-center justify-center text-4xl group-hover:hidden">
+            <div
+              key={index}
+              className="relative w-32 h-32 flex items-center justify-center bg-[#0e0f0f]/70 backdrop-blur-lg rounded-xl transition-all duration-300 hover:backdrop-blur-lg group"
+            >
+              <span className="absolute inset-0 flex items-center justify-center text-4xl transition-opacity duration-300 group-hover:opacity-0">
                 {item.icon}
               </span>
               <span className="absolute inset-0 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-gray-300 p-2">
@@ -57,19 +143,17 @@ export default function Hero() {
             </div>
           ))}
         </div>
-
-        {/* Action Button */}
         <div className="mt-8">
           {isAuthenticated ? (
-            <Link
-              href="/businessinfo"
-              className="bg-gray-800 hover:bg-gray-700 px-6 py-3 rounded-lg text-white transition-all duration-300"
+            <button
+              onClick={() => router.push("/businessinfo")}
+              className="bg-[#181818] cursor-pointer hover:bg-[#292929] px-6 py-3 rounded-lg text-white transition-all duration-300"
             >
               Започнете сега!
-            </Link>
+            </button>
           ) : (
             <button
-              className="bg-gray-800 px-6 py-3 rounded-lg text-gray-500 cursor-not-allowed"
+              className="bg-[#292929] px-6 py-3 rounded-lg text-gray-500 cursor-not-allowed"
               disabled
             >
               Започнете сега!
@@ -77,25 +161,33 @@ export default function Hero() {
           )}
         </div>
       </div>
-
-      {/* Footer & Authentication Links */}
       <footer className="absolute bottom-6 text-center text-gray-500 text-sm">
         &copy; 2025 FirmFlow. Всички права запазени.
       </footer>
-
       <div className="fixed top-4 right-4 flex space-x-4">
-        <Link
-          href="/login"
-          className="bg-gray-900 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all"
-        >
-          Вход
-        </Link>
-        <Link
-          href="/signup"
-          className="bg-gray-900 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all"
-        >
-          Регистрация
-        </Link>
+        {isAuthenticated ? (
+          <button
+            onClick={logout}
+            className="bg-[#181818] cursor-pointer hover:bg-[#292929] px-4 py-2 rounded-lg transition-all"
+          >
+            Изход
+          </button>
+        ) : (
+          <>
+            <Link
+              href="/login"
+              className="bg-[#181818] hover:bg-[#292929] px-4 py-2 rounded-lg transition-all"
+            >
+              Вход
+            </Link>
+            <Link
+              href="/signup"
+              className="bg-[#181818] hover:bg-[#292929] px-4 py-2 rounded-lg transition-all"
+            >
+              Регистрация
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );
