@@ -1,4 +1,4 @@
-"use client"; // Ensure it's a client component in Next.js 13+
+"use client"; 
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -15,9 +15,9 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitting form..."); // Debugging
+    console.log("Submitting form..."); 
 
-    setError(null); // Reset errors
+    setError(null); 
 
     try {
       const response = await fetch("http://localhost:8000/auth/signup/", {
@@ -31,10 +31,9 @@ export default function Signup() {
         throw new Error(data.detail || "Signup failed");
       }
 
-      const data = await response.json(); // Get the response data here
+      const data = await response.json(); 
 
-      // Save tokens in localStorage
-      router.push("/login"); // Redirect to login page on success
+      router.push("/login"); 
     } catch (err) {
       setError(err.message);
     }

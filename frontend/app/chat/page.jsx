@@ -115,7 +115,6 @@ export default function ChatPage() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Vertical Navigation Sidebar */}
       <div className="w-1/4 bg-[#0a0a0a] p-6">
         <h2 className="text-2xl font-bold text-white mb-6">Фирми</h2>
         <button
@@ -124,10 +123,8 @@ export default function ChatPage() {
         >
           Назад към Фирми
         </button>
-        {/* Optionally, add additional firm navigation here */}
       </div>
 
-      {/* Chat Area */}
       <div className="w-3/4 bg-[#111] p-10 text-white flex flex-col">
         <h1 className="text-3xl font-bold mb-6">Чат за фирма ID: {firmId}</h1>
         <div className="flex-1 overflow-y-auto mb-6">
@@ -136,7 +133,6 @@ export default function ChatPage() {
           ) : (
             chatHistory.map((msg, index) => (
               <div key={index} className="flex items-start mb-4">
-                {/* Small checkbox added to the left */}
                 <input
                   type="checkbox"
                   className="mt-2 mr-2"
@@ -178,16 +174,12 @@ export default function ChatPage() {
             Изпрати
           </button>
         </div>
-
-        {/* Button to incorporate selected pitch messages */}
         <button
           onClick={handleIncorporatePitch}
           className="mb-4 py-3 px-6 bg-blue-600 rounded hover:bg-blue-700 transition-colors duration-300"
         >
           Incorporate Pitch into Project
         </button>
-
-        {/* Display the updated business plan if available */}
         {updatedPlan && (
           <div className="bg-green-800 p-4 rounded">
             <h2 className="text-xl font-bold mb-2">Updated Business Plan:</h2>

@@ -36,7 +36,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-700 to-blue-600 text-white flex flex-col items-center transition-all duration-600">
-      {/* Navbar */}
       <div className="fixed top-0 left-0 w-full bg-[#121212]/70 backdrop-blur-md py-4 px-6 flex items-center justify-between shadow-md z-10">
         <button
           onClick={() => router.push("/")}
@@ -47,12 +46,10 @@ export default function HomePage() {
         <h1 className="absolute left-1/2 transform -translate-x-1/2 text-2xl font-semibold">
           FirmFlow
         </h1>
-        <div className="w-16" /> {/* Empty div for symmetry */}
+        <div className="w-16" />
       </div>
   
-      {/* Main Content */}
       <div className="w-full flex flex-col items-center mt-24 space-y-6 ">
-        {/* Stats Section */}
         <motion.div
           className="bg-[#1a1a1a]/50 p-6 rounded-xl w-[400px] text-center shadow-lg"
           initial={{ opacity: 0, y: -20 }}

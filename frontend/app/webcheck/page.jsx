@@ -24,13 +24,11 @@ export default function DomainCheckPage() {
     }
     setLoading(true);
     try {
-      // Retrieve the JWT token from localStorage
       const token = localStorage.getItem("access");
       const response = await apiFetch("http://localhost:8000/api/LLM/firms/name/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Include the JWT token in the Authorization header
           "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({ domain: domain.trim() }),
@@ -42,14 +40,12 @@ export default function DomainCheckPage() {
         return;
       }
       if (data.message && data.message.includes("available")) {
-        // Domain is available: save domain info and proceed
         const storedData = localStorage.getItem("firmData");
         let firmData = storedData ? JSON.parse(storedData) : {};
         firmData.domain = domain.trim();
         localStorage.setItem("firmData", JSON.stringify(firmData));
-        router.push("/nextPage"); // Navigate to the next page (adjust route as needed)
+        router.push("/nextPage"); 
       } else {
-        // Domain is taken: show alternative suggestions from ChatGPT
         setSuggestions(data.suggestions);
       }
     } catch (err) {
@@ -59,17 +55,15 @@ export default function DomainCheckPage() {
   };
 
   const handleSkip = () => {
-    // Option to skip domain creation: save empty domain and proceed
     const storedData = localStorage.getItem("firmData");
     let firmData = storedData ? JSON.parse(storedData) : {};
     firmData.domain = "";
     localStorage.setItem("firmData", JSON.stringify(firmData));
-    router.push("/nextPage"); // Navigate to the next page (adjust route as needed)
+    router.push("/nextPage"); 
   };
 
   return (
     <div className="flex min-h-screen">
-      {/* Left Side - Input and Buttons */}
       <div className="w-1/2 min-h-screen flex flex-col justify-center px-20 bg-[#0a0a0a]">
         <h2 className="text-3xl font-semibold text-white mb-6">
           Въведи желания домейн за твоя бизнес
@@ -111,7 +105,6 @@ export default function DomainCheckPage() {
         </div>
       </div>
 
-      {/* Right Side - Info Box */}
       <div className="w-1/2 min-h-screen flex justify-center items-center px-16 bg-gradient-to-br from-blue-400 to-red-500 to-purple-400 bg-opacity-80 backdrop-blur-lg shadow-lg">
         <div className="bg-black/90 rounded-lg max-w-lg w-full p-8 shadow-lg">
           <h2 className="text-2xl font-bold mb-4 text-center">

@@ -160,7 +160,7 @@ export default function FirmDashboardPage() {
             onClick={() => router.push(`/home`)}
             className="bg-[#0e0e0e]/70 px-4 py-2 rounded-lg hover:bg-[#292929]/70 transition w-full cursor-pointer"
           >
-            Обратно към бизнеси
+            Обратно към фирми
           </button>
         </div>
   

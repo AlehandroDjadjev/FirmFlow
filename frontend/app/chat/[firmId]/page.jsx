@@ -95,7 +95,6 @@ export default function ChatPage() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Left: Chat Interface with Gradient - 5/7 */}
       <div className="w-5/7 min-h-screen flex flex-col justify-start px-10 py-6 bg-gradient-to-br from-orange-400 to-red-500 text-white">
         <div className="flex justify-between items-center mb-6">
           <button
@@ -173,7 +172,6 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Right: Main Document - 2/7, Black background */}
       <div className="w-2/7 min-h-screen bg-black text-white p-6 overflow-y-auto border-l border-white/10">
         <h2 className="text-2xl font-bold mb-4 text-center">Основен документ</h2>
         {mainDocument ? (

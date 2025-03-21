@@ -1,4 +1,4 @@
-"use client"; // Ensure it's a client component in Next.js 13+
+"use client"; 
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ export default function Login() {
     e.preventDefault();
     console.log("Submitting login...");
   
-    setError(null); // Reset errors
+    setError(null);
   
     try {
       const response = await fetch("http://localhost:8000/auth/login/", {
@@ -32,15 +32,12 @@ export default function Login() {
         throw new Error(data.detail || "Login failed");
       }
   
-      console.log("Login success:", data); // Log response to check tokens
+      console.log("Login success:", data); 
   
-      // Save tokens in localStorage
       localStorage.setItem("access", data.access);
       localStorage.setItem("refresh", data.refresh);
   
-      // Redirect user to a protected page (e.g., dashboard)
-      
-      router.push("/"); // Or wherever you want to redirect
+      router.push("/"); 
     } catch (err) {
       setError(err.message);
     }
