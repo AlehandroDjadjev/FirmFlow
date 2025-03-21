@@ -1,0 +1,1 @@
+Answer the next user prompt in a more systemized and separated manner. Your answer should be more like a very detailed plan or tutorial on the manner, with clearcut and explained points. It should also most definitly include links to useful websites or reccomendations for articles.

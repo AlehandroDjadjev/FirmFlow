@@ -1,271 +1,252 @@
-import os
-import json
-from django.conf import settings
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from openai import OpenAI
-from dotenv import load_dotenv
-from typing import List
-from .models import AIInteraction, Document
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
-from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
-from .models import Firm, MainDocument, AIInteraction
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.conf import settings
+from .models import Firm, MainDocument
+from .serializers import FirmSerializer
+from openai import OpenAI
+import os
+from .models import AIInteraction,Document
+from .serializers import DocumentSerializer
+from pinecone import Pinecone
+from dotenv import load_dotenv
+load_dotenv()  # this should run BEFORE os.getenv is called
 
-# Load environment variables
-load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_ENV = os.getenv("PINECONE_ENV")
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME")
+EMBEDDING_MODEL = os.getenv("PINECONE_EMBEDDING_MODEL")
+GPT_MODEL = os.getenv("GPT_MODEL")
+NAMESPACE = os.getenv("NAMESPACE", "default")
+TOP_K = 3
 
-# API Keys
-OPENAI_API_KEY = "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"
-GPT_MODEL = os.getenv("GPT_MODEL", "gpt-4")  # Default to GPT-4 if not set
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+pc = Pinecone(api_key=PINECONE_API_KEY)
+index = pc.Index(PINECONE_INDEX_NAME)
 
-# Initialize OpenAI
-openai_client = OpenAI(
-    api_key="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")
-
-
-def get_system_prompt():
-    """Read the system prompt from the 'prompts' folder in the root directory."""
-    file_path = os.path.join(settings.BASE_DIR, "prompts", "systemPrompt.txt")
-
-    if not os.path.exists(file_path):
-        return "System prompt file not found."
-
-    with open(file_path, "r", encoding="utf-8") as f:
-        return f.read().strip()
-
-
-def get_last_interactions(firm_id, n=10):
-    """Retrieve the last 10 AI interactions from the database for context."""
-    firm = get_object_or_404(Firm, id=firm_id)
-    recent_interactions = AIInteraction.objects.filter(
-        firm=firm).order_by("created_at")[:n]
-
-    if not recent_interactions:
-        return "No previous interactions found."
-
-    return "\n".join(
-        [f"User: {interaction.user_prompt}\nAI: {interaction.ai_response}" for interaction in recent_interactions]
+def get_embedding(text: str):
+    response = openai_client.embeddings.create(
+        model=EMBEDDING_MODEL,
+        input=[text]
     )
+    return response.data[0].embedding
 
+def query_dataset_chunks(query: str):
+    query_vector = get_embedding(query)
+    result = index.query(
+        vector=query_vector,
+        top_k=TOP_K,
+        include_metadata=True,
+        namespace=NAMESPACE
+    )
+    chunks = [(match.metadata["text"], match.score) for match in result.matches]
+    return chunks
 
-@csrf_exempt
-def submit_prompt(request, firm_id):
-    """Handles user prompt submission, interacts with OpenAI, and stores the response."""
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            user_prompt = data.get("prompt", "").strip()
-            save_as_document = data.get("save_as_document", False)
-            document_id = data.get("document_id", None)
+def get_prompt_file(path):
+    file_path = os.path.join(settings.BASE_DIR, "prompts", path)
+    if os.path.exists(file_path):
+        with open(file_path, "r", encoding="utf-8") as file:
+            return file.read()
+    else:
+        return Response({"error": "No planPrompt file"}, status=status.HTTP_400_BAD_REQUEST)
 
-            if not user_prompt:
-                return JsonResponse({"error": "Prompt cannot be empty"}, status=400)
+class CreateFirmView(generics.CreateAPIView):
+    serializer_class = FirmSerializer
+    parser_classes = (MultiPartParser, FormParser)
+    permission_classes = [IsAuthenticated]
 
-            # Retrieve the firm and its main document
-            firm = get_object_or_404(Firm, id=firm_id)
-            main_document = MainDocument.objects.filter(firm=firm).first()
-            main_document_text = main_document.text if main_document else ""
-
-            # Retrieve extra document if `document_id` is provided
-            document_context = ""
-            if document_id:
-                document = get_object_or_404(Document, id=document_id)
-                document_context = f"\n\n### Additional Context from Document '{document.title}' ###\n{document.text}"
-
-            # Retrieve last 10 interactions
-            conversation_history = get_last_interactions(firm_id=firm_id, n=10)
-
-            # Merge system prompt, firm main document, additional document & conversation history
-            full_system_prompt = (
-                f"{main_document_text}{document_context}\n\n### Previous Interactions ###\n{conversation_history}"
-            )
-            print(full_system_prompt)
-
-            # Construct the message for OpenAI
-            messages = [
-                {"role": "system", "content": full_system_prompt},
-                {"role": "user", "content": user_prompt}
-            ]
-
-            response = openai_client.chat.completions.create(
-                model=GPT_MODEL,
-                messages=messages,
-                temperature=0.1
-            )
-
-            ai_response = response.choices[0].message.content.strip()
-
-            # Save interaction
-            AIInteraction.objects.create(
-                firm=firm, user_prompt=user_prompt, ai_response=ai_response)
-
-            # Save response as a document if requested
-            if save_as_document:
-                document = Document.objects.create(
-                    firm=firm,
-                    title=f"AI Response for {firm.name}",
-                    text=ai_response
-                )
-                return JsonResponse({"response": ai_response, "document_id": document.id, "message": "Response saved as document."})
-
-            return JsonResponse({"response": ai_response})
-
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-
-    return JsonResponse({"error": "Invalid request method"}, status=405)
-
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def edit_main_document(request, firm_id):
-    """
-    Incorporates selected pitch ideas into the firm's business plan.
-
-    URL: /api/LLM/EditMain/<int:firm_id>/
-
-    Expected JSON payload:
-    {
-        "selected_messages": [
-            "User: ...",
-            "AI: ...",
-            "User: ...",
-            ...
-        ]
-    }
-
-    The view constructs a system prompt using the current plan (if available) and the selected messages,
-    then sends the prompt to OpenAI's chat completion endpoint. The response (which should contain ONLY the
-    updated plan) is then saved as the firm's new MainDocument.
-    """
-    try:
-        data = json.loads(request.body)
-        selected_messages = data.get("selected_messages", [])
-
-        if not selected_messages:
-            return Response({"error": "selected_messages cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Retrieve the firm and its existing main document (if any)
-        firm = get_object_or_404(Firm, id=firm_id)
-        main_document = MainDocument.objects.filter(firm=firm).first()
-        current_plan = main_document.text if main_document else "No existing plan."
-
-        # Construct the system prompt for GPT
-        system_prompt = (
-            "You are an expert business consultant. Below is the current business plan for the firm:\n\n"
-            f"{current_plan}\n\n"
-            "Incorporate the following pitch ideas into the business model to create an updated, improved plan. "
-            "Your response must ONLY include the updated plan and nothing else."
-        )
-
-        # Combine the selected messages into one string (each on a new line)
-        pitch_text = "\n".join(selected_messages)
-
-        # Build the messages for OpenAI
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Update the plan using these pitch ideas:\n\n{pitch_text}"}
-        ]
-
-        response = openai_client.chat.completions.create(
-            model=GPT_MODEL,
-            messages=messages,
-            temperature=0.1
-        )
-        updated_plan = response.choices[0].message.content.strip()
-
-        # Save the updated plan as the new main document (update or create)
-        if main_document:
-            main_document.text = updated_plan
-            main_document.save()
-        else:
-            MainDocument.objects.create(firm=firm, text=updated_plan)
-
-        return Response({"updated_plan": updated_plan}, status=status.HTTP_200_OK)
-
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def initialize_firm(request):
-    """Creates a new firm and generates a PLAN document"""
-    try:
-        data = json.loads(request.body)
-        firm_name = data.get("name", "").strip()
-        firm_des = data.get("description", "").strip()
-        firm_budget = data.get("budget", "").strip()
-        firm_future = data.get("future", "").strip()
+    def post(self, request):
+        firm_name = request.data.get("name", "").strip()
 
         if not firm_name:
             return Response({"error": "Firm name is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Create Firm
         firm = Firm.objects.create(name=firm_name)
 
-        # Generate a PLAN for the firm
-        file_path = os.path.join(
-            settings.BASE_DIR, "prompts", "systemPrompt.txt")
-
-        if not os.path.exists(file_path):
-            return "System prompt file not found."
-
-        with open(file_path, "r", encoding="utf-8") as f:
-            system_prompt = f.read().strip()
         messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Generate a PLAN for the firm: {firm_name}. The user description for the firm: {firm_des}. The user budget: {firm_budget}. The user idea for the future: {firm_future}"}
+            {"role": "user", "content": f"Generate a business PLAN for firm: {firm_name} using this template:{get_prompt_file("GeneratePlan.txt")}"}
         ]
 
         response = openai_client.chat.completions.create(
-            model=GPT_MODEL,
+            model="gpt-4",
             messages=messages,
             temperature=0.1
         )
         plan_text = response.choices[0].message.content.strip()
 
-        # Store the PLAN in `MainDocuments`
-        MainDocument.objects.create(firm=firm, text=plan_text)
+        firm.main_document = plan_text
+        firm.save()
 
         return Response({"firm_id": firm.id, "plan": plan_text}, status=status.HTTP_201_CREATED)
 
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SubmitPromptView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, firm_id):
+        user_prompt = request.data.get("prompt", "").strip()
+        save_as_document = request.data.get("save_as_document", False)
+        document_id = request.data.get("document_id", None)
+
+        if not user_prompt:
+            return Response({"error": "Prompt cannot be empty"}, status=status.HTTP_400_BAD_REQUEST)
+
+        firm = get_object_or_404(Firm, id=firm_id)
+        main_document_text = firm.main_document or ""
+
+        document_context = ""
+        if document_id:
+            document = get_object_or_404(Document, firm=firm, document_number=document_id)
+            document_context = f"\n\n### Additional Context from Document '{document.title}' ###\n{document.text}"
+
+        conversation_history = "\n".join([
+            f"User: {i.user_prompt}\nAI: {i.ai_response}" for i in
+            AIInteraction.objects.filter(firm=firm).order_by("-created_at")[:10]
+        ])
+
+        retrieved_chunks = query_dataset_chunks(user_prompt)
+        context_from_chunks = "\n".join([
+            f"--- Chunk {i+1} (score: {score:.2f}) ---\n{chunk}" for i, (chunk, score) in enumerate(retrieved_chunks)
+        ])
+
+        full_system_prompt = (
+            f"{get_prompt_file("systemPrompt.txt")}\n\n"
+            f"### Retrieved Dataset Context ###\n{context_from_chunks}\n\n"
+            f"{main_document_text}{document_context}\n\n"
+            f"### Previous Interactions ###\n{conversation_history}\n\n"
+            f"{get_prompt_file("extradocPrompt") if save_as_document else ''}"
+
+        )
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def list_firms(request):
-    """Returns all firms"""
-    firms = Firm.objects.all().values("id", "name", "created_at")
-    return Response({"firms": list(firms)})
-
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def get_full_chat_history(request, firm_id):
-    """Retrieve the full chat history for a firm"""
-    firm = get_object_or_404(Firm, id=firm_id)
-
-    interactions = AIInteraction.objects.filter(
-        firm=firm).order_by("created_at")
-
-    response_data = {
-        "firm_id": firm.id,
-        "firm_name": firm.name,
-        "chat_history": [
-            {
-                "user_prompt": interaction.user_prompt,
-                "ai_response": interaction.ai_response,
-                "created_at": interaction.created_at.strftime("%Y-%m-%d %H:%M:%S")
-            }
-            for interaction in interactions
+        messages = [
+            {"role": "system", "content": full_system_prompt},
+            {"role": "user", "content": user_prompt}
         ]
-    }
 
-    return Response(response_data, status=status.HTTP_200_OK)
+        response = openai_client.chat.completions.create(
+            model="gpt-4",
+            messages=messages,
+            temperature=0.1
+        )
+
+        ai_response = response.choices[0].message.content.strip()
+        AIInteraction.objects.create(firm=firm, user_prompt=user_prompt, ai_response=ai_response)
+
+        if save_as_document:
+            document = Document.objects.create(
+                firm=firm,
+                user=request.user,
+                title=f"AI Response for {firm.name}",
+                text=ai_response
+            )
+            return Response({"response": ai_response, "document_id": document.document_number, "message": "Response saved as document."})
+
+        return Response({"response": ai_response})
+    
+
+
+class DocumentUploadView(generics.CreateAPIView):
+    """Upload a document to a firm."""
+    serializer_class = DocumentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, firm_id):
+        firm = get_object_or_404(Firm, id=firm_id)
+        serializer = DocumentSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(user=request.user, firm=firm)
+            return Response({"message": "Document created successfully!", "data": serializer.data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class DocumentDeleteView(generics.DestroyAPIView):
+    """Delete a document by firm_id and document_number."""
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, firm_id, document_number):
+        document = get_object_or_404(Document, firm=firm_id, document_number=document_number, user=request.user)
+        document.delete()
+        return Response({"message": "Document deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
+
+class ListFirmDocumentsView(generics.ListAPIView):
+    """Lists all documents for a specific firm."""
+    serializer_class = DocumentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Retrieve documents for the specified firm_id"""
+        firm_id = self.kwargs.get("firm_id")  # Get the firm_id from URL
+        firm = get_object_or_404(Firm, id=firm_id)  # Ensure firm exists
+        return Document.objects.filter(firm=firm).order_by("document_number")
+
+    def list(self, request, *args, **kwargs):
+        """Customize response to include firm details"""
+        queryset = self.get_queryset()
+        firm = get_object_or_404(Firm, id=self.kwargs.get("firm_id"))
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            "firm_id": firm.id,
+            "firm_name": firm.name,
+            "documents": serializer.data
+        })
+    
+class ListFirmsView(generics.ListAPIView):
+    """Lists all firms"""
+    serializer_class = FirmSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Retrieve all firms"""
+        return Firm.objects.all().order_by("-created_at")
+
+    def list(self, request, *args, **kwargs):
+        """Customize response format"""
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"firms": serializer.data})
+    
+class UpdateMainDocumentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, firm_id):
+        firm = get_object_or_404(Firm, id=firm_id)
+        new_text = request.data.get("main_document", "").strip()
+
+        if not new_text:
+            return Response({"error": "main_document content is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        firm.main_document = new_text
+        firm.save()
+        return Response({"message": "Main document updated successfully.", "main_document": firm.main_document})
+    
+class UpdateFirmDocumentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, firm_id, document_number):
+        firm = get_object_or_404(Firm, id=firm_id)
+        document = get_object_or_404(Document, firm=firm, document_number=document_number, user=request.user)
+
+        new_title = request.data.get("title", None)
+        new_text = request.data.get("text", None)
+
+        if not new_title and not new_text:
+            return Response({"error": "At least one of 'title' or 'text' is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if new_title:
+            document.title = new_title
+        if new_text:
+            document.text = new_text
+
+        document.save()
+        return Response({
+            "message": "Document updated successfully.",
+            "document_number": document.document_number,
+            "title": document.title,
+            "text": document.text
+        }, status=status.HTTP_200_OK)

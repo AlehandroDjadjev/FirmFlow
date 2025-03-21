@@ -58,8 +58,8 @@ export default function BusinessFuturePage() {
   };
 
   return (
-    <div className="flex min-h-screen">
-      {/* Left Side - Input */}
+    <div className="flex min-h-screen bg-black">
+      {/* Left Side - Input Section */}
       <div className="w-1/2 min-h-screen flex flex-col justify-center px-20 bg-[#0a0a0a]">
         <h2 className="text-3xl font-semibold text-white mb-6">
           Опиши бъдещето на бизнеса си
@@ -88,19 +88,27 @@ export default function BusinessFuturePage() {
         {message && <p className="mt-4 text-white">{message}</p>}
       </div>
 
-      {/* Right Side - Informational Content */}
-      <div className="w-1/2 min-h-screen flex flex-col justify-center px-20 bg-[#111] text-white">
-        <h2 className="text-2xl font-bold mb-4">Защо тези данни са важни?</h2>
-        <p className="text-lg text-[#ddd] leading-relaxed">
-          Информацията за бъдещето на бизнеса ти помага да планираш стратегии и да очертаеш целите си.
-          Тези данни са важни за дългосрочното развитие.
-        </p>
-        <h3 className="mt-6 text-xl font-semibold">Съвети:</h3>
-        <ul className="list-disc pl-6 text-lg text-[#bbb]">
-          <li>Бъди амбициозен, но реалистичен</li>
-          <li>Определи конкретни цели</li>
-          <li>Мисли за растеж и иновации</li>
-        </ul>
+      {/* Right Side - Info Section with Gradient */}
+      <div className="w-1/2 min-h-screen flex justify-center items-center px-16 bg-gradient-to-br from-orange-400 to-red-600 to-red-400 text-white bg-opacity-80 backdrop-blur-lg shadow-lg">
+        <div className="bg-black/90 rounded-lg max-w-lg w-full p-8 shadow-lg">
+          <h2 className="text-2xl font-bold mb-4 text-center">
+            Как изглежда бъдещето?
+          </h2>
+          <p className="text-left text-gray-300 leading-relaxed text-center">
+            За да развиеш успешен бизнес, трябва да имаш ясна визия за бъдещето.
+            Опиши своите идеи, цели и стратегии за развитие.
+          </p>
+          <h3 className="mt-6 text-xl font-semibold text-center">
+            Полезни въпроси:
+          </h3>
+          <ul className="list-disc pl-6 text-lg text-gray-400 space-y-2">
+            <li className="text-left">
+              Как ще изглежда бизнесът ти след 5 години?
+            </li>
+            <li className="text-left">Какви иновации ще внедриш?</li>
+            <li className="text-left">Как ще се отличаваш от конкуренцията?</li>
+          </ul>
+        </div>
       </div>
     </div>
   );

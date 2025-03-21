@@ -41,8 +41,13 @@ export default function BusinessInfoPage() {
   };
 
   return (
+<<<<<<< HEAD
     <div className="flex min-h-screen">
       {/* Left Side - Input Fields */}
+=======
+    <div className="flex min-h-screen bg-black">
+      {/* Left Side - Centered Input and Button */}
+>>>>>>> 420364e2a51d25de2713158d0f2907a4b32c3a12
       <div className="w-1/2 min-h-screen flex flex-col justify-center px-20 bg-[#0a0a0a]">
         <h2 className="text-3xl font-semibold text-white mb-6">Въведи данни за фирмата</h2>
         <input
@@ -79,20 +84,22 @@ export default function BusinessInfoPage() {
         </button>
       </div>
 
-      {/* Right Side - Informational Content */}
-      <div className="w-1/2 min-h-screen flex flex-col justify-center px-20 bg-[#111] text-white">
-        <h2 className="text-2xl font-bold mb-4">Защо е важно?</h2>
-        <p className="text-lg text-[#ddd] leading-relaxed">
-          Описанието на бизнеса ти помага на клиентите да разберат какво предлагаш.
-          Колкото по-ясно и точно е описанието, толкова по-лесно ще достигнеш до
-          правилните хора.
-        </p>
-        <h3 className="mt-6 text-xl font-semibold">Съвети:</h3>
-        <ul className="list-disc pl-6 text-lg text-[#bbb]">
-          <li>Бъди ясен и точен</li>
-          <li>Използвай ключови думи</li>
-          <li>Опиши уникалността на бизнеса си</li>
-        </ul>
+      {/* Right Side - Left-Aligned Text Content */}
+      <div className="w-1/2 min-h-screen flex justify-center items-center px-16 bg-gradient-to-br from-green-400 via-yellow-500 to-yellow-400 text-white bg-opacity-80 backdrop-blur-lg shadow-lg">
+        <div className="bg-black/90 rounded-lg max-w-lg w-full p-8 shadow-lg">
+          <h2 className="text-2xl font-bold mb-4 text-center">Защо е важно?</h2>
+          <p className="text-left text-gray-300 leading-relaxed text-center">
+            Описанието на бизнеса ти помага на клиентите да разберат какво
+            предлагаш. Колкото по-ясно и точно е описанието, толкова по-лесно ще
+            достигнеш до правилните хора.
+          </p>
+          <h3 className="mt-6 text-xl font-semibold text-center">Съвети:</h3>
+          <ul className="list-disc pl-6 text-lg text-gray-400 space-y-2">
+            <li className="text-left">Бъди ясен и точен</li>
+            <li className="text-left">Използвай ключови думи</li>
+            <li className="text-left">Опиши уникалността на бизнеса си</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
