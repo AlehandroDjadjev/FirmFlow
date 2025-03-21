@@ -13,9 +13,16 @@ from .models import AIInteraction, Document
 from .serializers import DocumentSerializer, AIInteractionSerializer
 from pinecone import Pinecone
 from dotenv import load_dotenv
-from .model import query_pinecone
+from .model import query_pinecone, chunk_text,upsert_chunks
+import requests
+import requests
+import time
+import json
 
 load_dotenv()  # this should run BEFORE os.getenv is called
+
+# Headers
+
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
@@ -184,6 +191,10 @@ class SubmitPromptView(generics.CreateAPIView):
         return Response({"response": ai_response})
 
 
+
+
+
+
 class DocumentUploadView(generics.CreateAPIView):
     """Upload a document to a firm."""
     serializer_class = DocumentSerializer
@@ -283,6 +294,8 @@ class UpdateMainDocumentView(APIView):
         return Response({"message": "Main document updated successfully.", "main_document": firm.main_document})
 
 
+
+
 class UpdateFirmDocumentView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -374,3 +387,43 @@ class EditMainDocumentAIView(generics.CreateAPIView):
             MainDocument.objects.create(firm=firm, text=updated_plan)
 
         return Response({"updated_plan": updated_plan}, status=status.HTTP_200_OK)
+    
+class GetFirm(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, firm_id):
+        firm = Firm.objects.filter(firm_id=firm_id)[0]
+        return Response({"firm": firm}, status=status.HTTP_200_OK)
+    
+class RAGUploadView(APIView):
+    parser_classes = [JSONParser]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        text = request.data.get("rag_EXTRA", "").strip()
+
+        if not text:
+            return Response({"error": "Missing text field."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Step 1: Chunk the text (you already have this)
+            chunks = chunk_text(text)
+
+            # Step 2: Create metadata prefix for this upload
+            timestamp = int(time.time())
+            metadata_prefix = f"user-{user.id}-{timestamp}"
+
+            # Step 3: Upsert into Pinecone
+            upsert_chunks(chunks, metadata_prefix=metadata_prefix)
+
+            return Response({
+                "message": "Text successfully added to RAG",
+                "chunks_uploaded": len(chunks),
+                "metadata_prefix": metadata_prefix
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({
+                "error": "Failed to upload to RAG",
+                "details": str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
