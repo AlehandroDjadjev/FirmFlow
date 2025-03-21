@@ -9,8 +9,8 @@ const containerStyle = {
 const LocationPicker = ({ setLocation }) => {
   const [map, setMap] = useState(null);
   const [markerPosition, setMarkerPosition] = useState({
-    lat: 40.748817,  // Default location (e.g., New York)
-    lng: -73.985428,
+    lat: 42.679306,
+    lng:  23.338465,
   });
 
   useEffect(() => {
