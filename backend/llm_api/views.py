@@ -18,6 +18,8 @@ import requests
 import requests
 import time
 import json
+import PyPDF2
+import urllib
 
 load_dotenv()  # this should run BEFORE os.getenv is called
 
@@ -66,6 +68,7 @@ def get_prompt_file(path):
             return file.read()
     else:
         return Response({"error": "No planPrompt file"}, status=status.HTTP_400_BAD_REQUEST)
+
     
 
 class CreateFirmView(generics.CreateAPIView):
@@ -186,9 +189,9 @@ class SubmitPromptView(generics.CreateAPIView):
                 title=f"AI Response for {firm.name}",
                 text=ai_response
             )
-            return Response({"response": ai_response, "document": document.document_number, "message": "Response saved as document."})
+            return Response({"response": ai_response, "document": document.document_number, "message": "Response saved as document.","rag_context": context_from_chunks})
 
-        return Response({"response": ai_response})
+        return Response({"response": ai_response,"rag_context": context_from_chunks})
 
 
 
@@ -390,40 +393,104 @@ class EditMainDocumentAIView(generics.CreateAPIView):
     
 class GetFirm(APIView):
     permission_classes = [IsAuthenticated]
-    def post(self, request, firm_id):
-        firm = Firm.objects.filter(firm_id=firm_id)[0]
-        return Response({"firm": firm}, status=status.HTTP_200_OK)
+
+    def get(self, request, firm_id):
+        firm = get_object_or_404(Firm, id=firm_id)
+        serializer = FirmSerializer(firm)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
+    
+
 class RAGUploadView(APIView):
-    parser_classes = [JSONParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         user = request.user
-        text = request.data.get("rag_EXTRA", "").strip()
 
-        if not text:
-            return Response({"error": "Missing text field."}, status=status.HTTP_400_BAD_REQUEST)
+        text_input = request.data.get("rag_EXTRA", "").strip()
+        url = request.data.get("url", "").strip()
+        pdf_file = request.FILES.get("pdf_file")
 
         try:
-            # Step 1: Chunk the text (you already have this)
-            chunks = chunk_text(text)
+            # 1. Handle PDF
+            if pdf_file:
+                reader = PyPDF2.PdfReader(pdf_file)
+                text = ""
+                for page in reader.pages:
+                    extracted = page.extract_text()
+                    if extracted:
+                        text += extracted
 
-            # Step 2: Create metadata prefix for this upload
+            # 2. Handle URL
+            elif url:
+                text = ""
+                try:
+                    with urllib.request.urlopen(url, timeout=10) as response:
+                        url_content = response.read().decode("utf-8", errors="ignore")
+                        text += "\n\n[From URL]:\n" + url_content
+                except Exception as e:
+                    return Response(
+                        {"error": "Failed to fetch URL content", "details": str(e)},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            # 3. Handle raw text
+            elif text_input:
+                text = text_input
+
+            else:
+                return Response({
+                    "error": "Provide either 'rag_EXTRA', 'url' or 'pdf_file'."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            if not text.strip():
+                return Response({
+                    "error": "No valid text found to process."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Chunk and upsert to Pinecone
+            chunks = chunk_text(text)
             timestamp = int(time.time())
             metadata_prefix = f"user-{user.id}-{timestamp}"
-
-            # Step 3: Upsert into Pinecone
             upsert_chunks(chunks, metadata_prefix=metadata_prefix)
 
             return Response({
-                "message": "Text successfully added to RAG",
+                "message": "Data successfully added to RAG.",
                 "chunks_uploaded": len(chunks),
+                "source_type": "pdf" if pdf_file else "url" if url else "text",
                 "metadata_prefix": metadata_prefix
             }, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response({
-                "error": "Failed to upload to RAG",
+                "error": "Failed to process and upload.",
                 "details": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+class GetMainDocumentView(APIView):
+    """
+    Returns the main document for a firm.
+
+    URL: /api/LLM/main_document/<int:firm_id>/
+    Method: GET
+
+    Response:
+    {
+        "firm_id": 1,
+        "main_document": "This is the firm's business plan..."
+    }
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, firm_id):
+        firm = get_object_or_404(Firm, id=firm_id)
+        main_document = MainDocument.objects.filter(firm=firm).first()
+
+        if not main_document:
+            return Response({"error": "Main document not found for this firm."}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({
+            "firm_id": firm.id,
+            "main_document": main_document.text
+        }, status=status.HTTP_200_OK)
