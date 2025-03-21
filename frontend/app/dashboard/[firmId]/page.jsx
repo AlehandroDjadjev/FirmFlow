@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import React, { useState, useEffect, useRef } from "react";
+import Script from "next/script";
+import { apiFetch } from "../apifetch";
 
 export default function FirmDashboardPage() {
   const { firmId } = useParams();
@@ -16,7 +18,8 @@ export default function FirmDashboardPage() {
   useEffect(() => {
     if (!firmId || !token) return;
 
-    fetch(`http://localhost:8000/api/LLM/firm/${firmId}/`, {
+    apiFetch(`http://localhost:8000/api/LLM/firm/${firmId}/`, {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
       },
