@@ -41,13 +41,8 @@ export default function BusinessInfoPage() {
   };
 
   return (
-<<<<<<< HEAD
-    <div className="flex min-h-screen">
-      {/* Left Side - Input Fields */}
-=======
     <div className="flex min-h-screen bg-black">
       {/* Left Side - Centered Input and Button */}
->>>>>>> 420364e2a51d25de2713158d0f2907a4b32c3a12
       <div className="w-1/2 min-h-screen flex flex-col justify-center px-20 bg-[#0a0a0a]">
         <h2 className="text-3xl font-semibold text-white mb-6">Въведи данни за фирмата</h2>
         <input
