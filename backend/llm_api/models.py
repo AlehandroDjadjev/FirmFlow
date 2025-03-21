@@ -4,7 +4,11 @@ from django.contrib.auth.models import User
 class Firm(models.Model):
     """Stores firm details"""
     name = models.CharField(max_length=255, unique=True)
+    budget =models.CharField(max_length=255, unique=True)
+    desiredLocation =  models.CharField(max_length=255, unique=True)
+    extraNotes = models.TextField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
 
     def __str__(self):
         return self.name
