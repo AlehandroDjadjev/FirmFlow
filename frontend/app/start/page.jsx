@@ -24,14 +24,6 @@ export default function CreateFirmPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-<<<<<<< HEAD
-
-    const res = await fetch("http://localhost:8000/api/LLM/initialize_firm/", {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-=======
     const token = localStorage.getItem('access');
 
     const res = await fetch('http://localhost:8000/api/LLM/initialize_firm/', {
@@ -39,7 +31,6 @@ export default function CreateFirmPage() {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
->>>>>>> a09493912a6e7898a8a0e22f2f1c7bc4b19b009c
       },
       body: JSON.stringify(formData)
     });
