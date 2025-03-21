@@ -29,7 +29,7 @@ export default function BusinessInfoPage() {
         <h2 className="text-3xl font-semibold text-white mb-6">
           Опиши бизнеса си в 0-500 думи
         </h2>
-        <div className="relative">
+        <div className="relative ">
           <textarea
             className="w-full h-52 p-4 text-white bg-[#0e0e0e] border border-[#1a1a1a] rounded-lg focus:ring-2 focus:ring-[#222] focus:outline-none resize-none transition-all duration-300"
             placeholder="Пиши тук..."
