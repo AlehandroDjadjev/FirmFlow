@@ -29,7 +29,7 @@ export default function HomePage() {
 
   const handleSelectFirm = () => {
     if (selectedFirm) {
-      router.push(`/chat/${selectedFirm}`);
+      router.push(`/dashboard/${selectedFirm}`);
     }
   };
 
