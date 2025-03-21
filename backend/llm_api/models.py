@@ -4,6 +4,9 @@ from django.contrib.auth.models import User
 class Firm(models.Model):
     """Stores firm details"""
     name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True)
+    image = models.ImageField(upload_to="firm_images/", blank=True, null=True)  # Stores the uploaded image
+    website = models.URLField(blank=True, null=True)  # Stores the website URL
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

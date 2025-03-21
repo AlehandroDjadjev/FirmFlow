@@ -1,3 +1,4 @@
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
@@ -46,6 +47,7 @@ def query_dataset_chunks(query: str):
 
 class CreateFirmView(generics.CreateAPIView):
     serializer_class = FirmSerializer
+    parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
