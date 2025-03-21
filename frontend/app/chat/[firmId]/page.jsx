@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { apiFetch } from "@/app/apifetch";
 
 export default function ChatPage() {
   const [chatHistory, setChatHistory] = useState([]);
@@ -16,7 +17,7 @@ export default function ChatPage() {
     const token = localStorage.getItem("access");
     if (!firmId || !token) return;
 
-    fetch(`http://localhost:8000/api/LLM/interactions/${firmId}/`, {
+    apiFetch(`http://localhost:8000/api/LLM/interactions/${firmId}/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
