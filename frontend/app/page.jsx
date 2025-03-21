@@ -143,21 +143,37 @@ export default function Hero() {
             </div>
           ))}
         </div>
-        <div className="mt-8">
+        <div className="mt-8 flex gap-4 justify-center">
           {isAuthenticated ? (
-            <button
-              onClick={() => router.push("/businessinfo")}
-              className="bg-[#181818] cursor-pointer hover:bg-[#292929] px-6 py-3 rounded-lg text-white transition-all duration-300"
-            >
-              Започнете сега!
-            </button>
+            <>
+              <button
+                onClick={() => router.push("/businessinfo")}
+                className="bg-[#181818] cursor-pointer hover:bg-[#292929] px-6 py-3 rounded-lg text-white transition-all duration-300"
+              >
+                Започнете сега!
+              </button>
+              <button
+                onClick={() => router.push("/home")}
+                className="bg-[#181818] cursor-pointer hover:bg-[#292929] px-6 py-3 rounded-lg text-white transition-all duration-300"
+              >
+                Виж всички проекти!
+              </button>
+            </>
           ) : (
-            <button
-              className="bg-[#292929] px-6 py-3 rounded-lg text-gray-500 cursor-not-allowed"
-              disabled
-            >
-              Започнете сега!
-            </button>
+            <>
+              <button
+                className="bg-[#292929] px-6 py-3 rounded-lg text-gray-500 cursor-not-allowed"
+                disabled
+              >
+                Започнете сега!
+              </button>
+              <button
+                className="bg-[#292929] px-6 py-3 rounded-lg text-gray-500 cursor-not-allowed"
+                disabled
+              >
+                Виж всички проекти!
+              </button>
+            </>
           )}
         </div>
       </div>
