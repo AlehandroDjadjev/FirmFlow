@@ -1,7 +1,9 @@
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.conf import settings
 from .models import Firm, MainDocument
 from .serializers import FirmSerializer
@@ -54,6 +56,7 @@ def get_prompt_file(path):
 
 class CreateFirmView(generics.CreateAPIView):
     serializer_class = FirmSerializer
+    parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
