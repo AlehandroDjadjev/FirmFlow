@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch } from "../apifetch";
+import apiFetch from "@/app/apifetch";
 
 export default function BusinessFuturePage() {
   const [future, setFuture] = useState("");

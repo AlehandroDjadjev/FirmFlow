@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { apiFetch } from "@/app/apifetch";
+import  apiFetch  from "@/app/apifetch";
 
 export default function ChatPage() {
   const [chatHistory, setChatHistory] = useState([]);

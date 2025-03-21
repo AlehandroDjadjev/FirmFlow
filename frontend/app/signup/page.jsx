@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch } from "../apifetch";
+import  apiFetch  from "@/app/apifetch";
 
 export default function Signup() {
   const [formData, setFormData] = useState({ username: "", email: "", password: "" });

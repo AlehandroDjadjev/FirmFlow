@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
 import Script from "next/script";
-import { apiFetch } from "../apifetch";
+import apiFetch from "@/app/apifetch";
 
 export default function FirmDashboardPage() {
   const { firmId } = useParams();

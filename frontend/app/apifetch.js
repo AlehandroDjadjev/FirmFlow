@@ -8,7 +8,7 @@ const onRefreshed = (token) => {
   refreshSubscribers = [];
 };
 
-export async function apiFetch(url, options = {}) {
+export default async function apiFetch(url, options = {}) {
   try {
     const accessToken = localStorage.getItem("access");
     if (!accessToken) {

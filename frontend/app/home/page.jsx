@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { apiFetch } from "../apifetch";
+import  apiFetch  from "@/app/apifetch";
 
 export default function HomePage() {
   const [firms, setFirms] = useState([]);
