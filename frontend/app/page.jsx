@@ -61,12 +61,24 @@ export default function Hero() {
   
     checkAuthentication(); // Call the async function
   }, []);
+
+  const decodeToken = (token) => {
+    const parts = token.split(".");
+    if (parts.length !== 3) {
+        console.error("Invalid token format");
+        return null;
+    }
+    const payload = JSON.parse(atob(parts[1])); // Decode the base64 payload
+    console.log("Decoded Token Payload:", payload);
+    return payload;
+  };
+
+
   // Function to decode JWT token and check expiration
   const checkTokenExpiration = (token) => {
     const decoded = decodeToken(token);
     if (decoded === null) {
-      // If the token is invalid, return true (expired).
-      return true;
+      return true; // If decoding fails, treat it as expired
     }
   
     const expirationTime = decoded.exp * 1000; // Convert to milliseconds
@@ -81,53 +93,45 @@ export default function Hero() {
     return refreshToken;
   }
 
-  const decodeToken = (token) => {
-    const parts = token.split(".");
-    if (parts.length !== 3) {
-        console.error("Invalid token format");
-        return null;
-    }
-    const payload = JSON.parse(atob(parts[1])); // Decode the base64 payload
-    console.log("Decoded Token Payload:", payload);
-    return payload;
-  };
-
   async function logout() {
     try {
-      const refreshToken = getRefreshToken();
+      const refreshToken = localStorage.getItem('refresh_token');
       const accessToken = localStorage.getItem('access');  
   
-      // Proceed with the logout request only if the refresh token exists
-      if (!refreshToken) {
-        console.error("No refresh token available");
+      // If the refresh token or access token is expired, we will handle it
+      if (!refreshToken || checkTokenExpiration(refreshToken)) {
+        console.error("Refresh token is invalid or expired, logging out.");
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh_token");
+        location.reload(true);  // Redirect to refresh the UI
         return;
       }
   
+      // Proceed with logout if refresh token is valid
       const response = await fetch('http://localhost:8000/auth/logout/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ refresh: refreshToken }),  // Send the refresh token in the body
+        body: JSON.stringify({ refresh: refreshToken }),
       });
   
       if (response.ok) {
         console.log("Logged out successfully");
         localStorage.removeItem("access");
         localStorage.removeItem("refresh_token");
-        router.push("/login"); // Redirect user to login page
+        location.reload(true);
       } else {
         const errorText = await response.text();
         console.error("Logout failed:", errorText);
-        alert("Logout failed: " + errorText);  // Show the error to the user
+        alert("Logout failed: " + errorText);
       }
     } catch (error) {
       console.error("Logout error:", error);
       alert("An error occurred during logout. Please try again.");
     }
-  }
-  
+  }  
+
   return (
     <div className="relative min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center px-6">
       {/* Background Blur Effect */}
@@ -202,16 +206,16 @@ export default function Hero() {
         {isAuthenticated ? (
           <button
             onClick={logout}
-            className="bg-gray-900 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all"
+            className="bg-[#181818] hover:bg-[#292929] px-4 py-2 rounded-lg transition-all"
           >
             Изход
           </button>
         ) : (
           <>
-            <Link href="/login" className="bg-gray-900 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all">
+            <Link href="/login" className="bg-[#181818] hover:bg-[#292929] px-4 py-2 rounded-lg transition-all">
               Вход
             </Link>
-            <Link href="/signup" className="bg-gray-900 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all">
+            <Link href="/signup" className="bg-[#181818] hover:bg-[#292929] px-4 py-2 rounded-lg transition-all">
               Регистрация
             </Link>
           </>

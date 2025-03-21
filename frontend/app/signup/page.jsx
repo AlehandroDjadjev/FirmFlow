@@ -52,7 +52,7 @@ export default function Signup() {
             placeholder="Име"
             value={formData.username}
             onChange={handleChange}
-            className="w-full p-2 mb-3 rounded bg-gray-800 text-white outline-none"
+            className="w-full p-2 mb-3 rounded bg-[#0e0e0e] text-white outline-none"
             required
           />
           <input
@@ -61,7 +61,7 @@ export default function Signup() {
             placeholder="Имейл"
             value={formData.email}
             onChange={handleChange}
-            className="w-full p-2 mb-3 rounded bg-gray-800 text-white outline-none"
+            className="w-full p-2 mb-3 rounded bg-[#0e0e0e] text-white outline-none"
             required
           />
           <input
@@ -70,14 +70,14 @@ export default function Signup() {
             placeholder="Парола"
             value={formData.password}
             onChange={handleChange}
-            className="w-full p-2 mb-3 rounded bg-gray-800 text-white outline-none"
+            className="w-full p-2 mb-3 rounded bg-[#0e0e0e] text-white outline-none"
             required
           />
 
           <div className="flex justify-center">
             <button
               type="submit"
-              className="w-40 cursor-pointer bg-gray-700 p-2 rounded-xl hover:bg-gray-600 transition text-white"
+              className="w-40 cursor-pointer bg-[#181818] p-2 rounded-xl hover:bg-[#292929] transition text-white"
             >
               Регистрирай се
             </button>
