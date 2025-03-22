@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import apiFetch from "@/app/apifetch";
 
 export default function FirmDashboardPage() {
@@ -95,22 +96,42 @@ export default function FirmDashboardPage() {
   if (!firm) return <div className="text-white p-6">Зареждане...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-600 to-purple-900 text-white flex items-center justify-center px-10">
-      <div className="bg-[#121212]/80 p-10 rounded-xl max-w-2xl w-full shadow-xl">
+    <motion.div
+      className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-600 to-purple-900 text-white flex items-center justify-center px-10"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div
+        className="bg-[#121212]/80 p-10 rounded-xl max-w-2xl w-full shadow-xl"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <h1 className="text-3xl font-bold mb-6 text-center">Настройки на фирмата</h1>
 
         {firm.image && (
-          <div className="mb-6 text-center">
+          <motion.div
+            className="mb-6 text-center"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
             <img
               src={`http://localhost:8000${firm.image}`}
               alt="Firm Logo"
               className="h-32 mx-auto rounded cursor-pointer"
             />
-          </div>
+          </motion.div>
         )}
 
         {editing && (
-          <div className="mb-6">
+          <motion.div
+            className="mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <label className="block text-sm mb-2">Качи ново лого:</label>
             <input
               type="file"
@@ -118,10 +139,15 @@ export default function FirmDashboardPage() {
               onChange={handleLogoChange}
               className="w-full bg-[#0e0e0e]/70 text-white border border-[#333] p-2 rounded cursor-pointer"
             />
-          </div>
+          </motion.div>
         )}
 
-        <div className="mb-6">
+        <motion.div
+          className="mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <label className="block text-sm mb-2 text-gray-400">Име на фирмата</label>
           {editing ? (
             <input
@@ -133,9 +159,14 @@ export default function FirmDashboardPage() {
           ) : (
             <p className="text-lg">{firm.name}</p>
           )}
-        </div>
-  
-        <div className="mb-6">
+        </motion.div>
+
+        <motion.div
+          className="mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <label className="block text-sm mb-2 text-gray-400">Описание</label>
           {editing ? (
             <textarea
@@ -147,62 +178,80 @@ export default function FirmDashboardPage() {
           ) : (
             <p className="text-gray-300">{firm.description || "Без описание"}</p>
           )}
-        </div>
-  
+        </motion.div>
+
         <div className="flex justify-between gap-4">
-          <button
+          <motion.button
             onClick={() => router.push(`/chat/${firmId}`)}
             className="bg-[#0e0e0e]/70 px-4 py-2 rounded-lg hover:bg-[#292929]/70 transition w-full cursor-pointer"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
           >
             Към чата
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => router.push(`/home`)}
             className="bg-[#0e0e0e]/70 px-4 py-2 rounded-lg hover:bg-[#292929]/70 transition w-full cursor-pointer"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
           >
             Обратно към фирми
-          </button>
+          </motion.button>
         </div>
-  
+
         <div className="flex justify-between gap-4 mt-6">
           {editing ? (
             <>
-              <button
+              <motion.button
                 onClick={saveChanges}
                 className={`w-full py-2 rounded ${
                   loading ? "bg-[#444]" : "bg-[#0e0e0e]/70 hover:bg-[#292929]/70"
                 }`}
                 disabled={loading}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
               >
                 Запази
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 onClick={() => {
                   setForm({ name: firm.name, description: firm.description });
                   setLogoFile(null);
                   setEditing(false);
                 }}
                 className="w-full py-2 bg-[#0e0e0e]/70 hover:bg-[#292929]/70 rounded-lg cursor-pointer"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
               >
                 Отказ
-              </button>
+              </motion.button>
             </>
           ) : (
-            <button
+            <motion.button
               onClick={() => setEditing(true)}
               className="w-full py-2 bg-[#0e0e0e]/70 hover:bg-[#292929]/70 rounded-lg cursor-pointer"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
             >
               Редактирай
-            </button>
+            </motion.button>
           )}
-          <button
+          <motion.button
             onClick={deleteFirm}
             className="w-full py-2 bg-[#0e0e0e]/70 hover:bg-[#292929]/70 rounded-lg cursor-pointer"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
           >
             Изтрий
-          </button>
+          </motion.button>
         </div>
-      </div>
-    </div>
-  );  
+      </motion.div>
+    </motion.div>
+  );
 }

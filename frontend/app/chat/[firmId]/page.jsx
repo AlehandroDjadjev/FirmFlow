@@ -101,14 +101,14 @@ export default function ChatPage() {
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={() => router.push("/home")}
-            className="bg-black px-4 py-2 rounded hover:bg-black/70 transition"
+            className="bg-[#0e0e0e]/80 px-4 py-2 rounded hover:[#292929]/70 cursor-pointer"
           >
             Назад
           </button>
-          <h2 className="text-xl font-bold">{firmName}</h2>
+          <h2 className="text-xl font-bold cursor-default">{firmName}</h2>
           <button
             onClick={() => router.push("/rag_add")}
-            className="bg-black px-4 py-2 rounded hover:bg-black/70 transition"
+            className="bg-[#0e0e0e]/80 px-4 py-2 rounded hover:[#292929]/70 cursor-pointer"
           >
             ➕ Добави RAG Контекст
           </button>
@@ -165,8 +165,8 @@ export default function ChatPage() {
             disabled={loading || !inputMessage.trim()}
             className={`px-6 py-4 rounded-r-lg transition-all duration-300 ${
               loading || !inputMessage.trim()
-                ? "bg-black/30 text-white/30 cursor-not-allowed"
-                : "bg-black hover:bg-black/70"
+                ? "bg-[#0e0e0e]/70 text-white/30 cursor-not-allowed"
+                : "bg-[#0e0e0e]/80 hover:[#292929]/70 cursor-pointer"
             }`}
           >
             Изпрати

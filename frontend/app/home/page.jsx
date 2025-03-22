@@ -61,7 +61,6 @@ export default function HomePage() {
           <p className="text-gray-400">Анализирани проекти: 120+</p>
         </motion.div>
   
-        {/* Selection Container */}
         <motion.div
           className="bg-[#121212]/70 backdrop-blur-md p-8 rounded-xl shadow-lg flex flex-col items-center w-[400px]"
           initial={{ opacity: 0, y: 20 }}
@@ -69,6 +68,14 @@ export default function HomePage() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-lg font-semibold mb-4">Изберете фирма:</h2>
+  
+          {/* New Firm Button with similar styling to select */}
+          <button
+            onClick={() => router.push("/businessinfo")}
+            className="w-full p-3 bg-[#1a1a1a]/70 text-white text-lg rounded-lg hover:bg-[#333333]/70 transition cursor-pointer mb-4"
+          >
+            Нова фирма
+          </button>
   
           {/* Dropdown Selection */}
           <select
@@ -89,8 +96,7 @@ export default function HomePage() {
               </option>
             ))}
           </select>
-  
-          {/* Select Button */}
+          
           <button
             onClick={handleSelectFirm}
             disabled={!selectedFirm}
@@ -116,6 +122,6 @@ export default function HomePage() {
         </motion.button>
       </div>
     </div>
-  );
+  );  
   
 }

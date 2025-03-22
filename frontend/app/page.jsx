@@ -112,32 +112,32 @@ export default function Hero() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-30 justify-center">
           {[
             {
-              icon: <PaperClipIcon className="h-12 w-12 text-gray-500" />,
+              icon: <PaperClipIcon className="h-12 w-12 cursor-defult text-gray-500" />,
               text: "Генерирайте детайлен бизнес план само с няколко клика.",
             },
             {
-              icon: <FolderIcon className="h-12 w-12 text-gray-500" />,
+              icon: <FolderIcon className="h-12 w-12 cursor-defult text-gray-500" />,
               text: "Качвайте документи и получавайте персонализирани анализи.",
             },
             {
               icon: (
-                <QuestionMarkCircleIcon className="h-12 w-12 text-gray-500" />
+                <QuestionMarkCircleIcon className="h-12 w-12 cursor-defult text-gray-500" />
               ),
               text: "Задавайте въпроси и получавайте експертни отговори в реално време.",
             },
             {
-              icon: <DocumentTextIcon className="h-12 w-12 text-gray-500" />,
+              icon: <DocumentTextIcon className="h-12 w-12 cursor-defult text-gray-500" />,
               text: "Създавайте специализирани документи – от правни консултации до маркетинг стратегии.",
             },
           ].map((item, index) => (
             <div
               key={index}
-              className="relative w-32 h-32 flex items-center justify-center bg-[#0e0f0f]/70 backdrop-blur-lg rounded-xl transition-all duration-300 hover:backdrop-blur-lg group"
+              className="relative w-32 h-32 flex items-center justify-center  bg-[#0e0f0f]/70 backdrop-blur-lg rounded-xl transition-all duration-300 hover:backdrop-blur-lg group"
             >
-              <span className="absolute inset-0 flex items-center justify-center text-4xl transition-opacity duration-300 group-hover:opacity-0">
+              <span className="absolute inset-0 flex items-center justify-center cursor-defult text-4xl transition-opacity duration-300 group-hover:opacity-0">
                 {item.icon}
               </span>
-              <span className="absolute inset-0 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-gray-300 p-2">
+              <span className="absolute inset-0 flex items-center justify-center cursor-defult text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-gray-300 p-2">
                 {item.text}
               </span>
             </div>
