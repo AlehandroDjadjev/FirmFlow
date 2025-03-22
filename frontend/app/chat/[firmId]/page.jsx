@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { FiMaximize2, FiMinimize2, FiDownload } from "react-icons/fi";
+import { FiMaximize2, FiMinimize2, FiDownload, FiChevronDown } from "react-icons/fi";
 import  apiFetch  from "@/app/apifetch";
 
 export default function ChatPage() {
@@ -12,6 +12,9 @@ export default function ChatPage() {
   const [inputMessage, setInputMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [documents, setDocuments] = useState([]);
+  const [selectedDocContent, setSelectedDocContent] = useState("");
+  const [selectedDocTitle, setSelectedDocTitle] = useState("Основен документ");
   const [mainDocument, setMainDocument] = useState("");
   const { firmId } = useParams();
   const router = useRouter();
@@ -43,7 +46,33 @@ export default function ChatPage() {
       .then((res) => res.json())
       .then((data) => setMainDocument(data.main_document || ""))
       .catch((err) => console.error("Main doc error:", err));
+    fetch(`http://localhost:8000/api/LLM/documents/list/${firmId}/`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => res.json())
+      .then(data => setDocuments(data.documents || []));
   }, [firmId]);
+
+  const handleDocumentSelect = async (docId, title) => {
+    if (docId === "main") {
+      setSelectedDocContent(mainDocument);
+      setSelectedDocTitle("Основен документ");
+    } else {
+      const res = await fetch(`http://localhost:8000/api/LLM/document/${firmId}/${docId}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setSelectedDocContent(data.document.text || "");
+      setSelectedDocTitle(title);
+    }
+  };
+
+  useEffect(() => {
+    if (mainDocument) setSelectedDocContent(mainDocument);
+  }, [mainDocument]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -177,22 +206,22 @@ export default function ChatPage() {
 
       {/* Right: Main Document - 2/7, Black background */}
       <div className="w-2/7 min-h-screen bg-black text-white p-6 overflow-y-auto border-l border-white/10">
-      <div
-  className={`${
-    isExpanded
-      ? "fixed top-0 left-0 w-full h-full z-50 bg-black p-6"
-      : "w-full min-h-screen bg-black text-white p-6 border-l border-white/10"
-  } transition-all duration-300 overflow-y-auto`}
->
-  <div className="flex justify-between items-center mb-4">
-    <h2 className="text-2xl font-bold text-center flex-1">Основен документ</h2>
+        <div
+    className={`${
+      isExpanded
+        ? "fixed top-0 left-0 w-full h-full z-50 bg-black p-6"
+        : "w-full min-h-screen bg-black text-white p-6 border-l border-white/10"
+    } transition-all duration-300 overflow-y-auto`}
+  >
+    <div className="flex justify-between items-center mb-4">
+      <h2 className="text-2xl font-bold text-center flex-1">{selectedDocTitle}</h2>
       <div className="flex gap-2">
         <button
           onClick={() => {
-            const blob = new Blob([mainDocument], { type: "text/plain" });
+            const blob = new Blob([selectedDocContent], { type: "text/plain" });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `firm_${firmId}_plan.txt`;
+            link.download = `firm_${firmId}_document.txt`;
             link.click();
           }}
           title="Изтегли"
@@ -208,15 +237,47 @@ export default function ChatPage() {
           {isExpanded ? <FiMinimize2 /> : <FiMaximize2 />}
         </button>
       </div>
-  </div>
-
-  {mainDocument ? (
-    <div className="text-sm whitespace-pre-wrap text-gray-300 leading-relaxed bg-neutral-900 p-4 rounded-lg">
-      {mainDocument}
     </div>
-  ) : (
-    <p className="text-gray-500 text-center">Няма документ.</p>
-  )}
+
+    <div className="mb-4 flex flex-col gap-2">
+      <button
+        onClick={() => handleDocumentSelect("main", "Основен документ")}
+        className="w-full bg-[#111] text-white py-2 rounded hover:bg-[#222] transition"
+      >
+        📘 Покажи основен документ
+      </button>
+
+      <div className="relative">
+        <div className="bg-[#111] rounded overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2 bg-[#1a1a1a]">
+            <span>📄 Други документи</span>
+            <FiChevronDown />
+          </div>
+          <div className="flex flex-col">
+            {documents.length === 0 && (
+              <span className="text-sm text-gray-400 px-4 py-2">Няма други документи</span>
+            )}
+            {documents.map((doc) => (
+              <button
+                key={doc.document_number}
+                onClick={() => handleDocumentSelect(doc.document_number, doc.title)}
+                className="text-left w-full px-4 py-2 hover:bg-[#2a2a2a] text-sm border-t border-white/10"
+              >
+                {doc.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {selectedDocContent ? (
+      <div className="text-sm whitespace-pre-wrap text-gray-300 leading-relaxed bg-neutral-900 p-4 rounded-lg mt-4">
+        {selectedDocContent}
+      </div>
+    ) : (
+      <p className="text-gray-500 text-center mt-10">Няма съдържание.</p>
+    )}
 </div>
       </div>
     </div>

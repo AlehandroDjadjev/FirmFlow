@@ -210,22 +210,26 @@ class SubmitPromptView(generics.CreateAPIView):
 
 
 
-
-
-
-class DocumentUploadView(generics.CreateAPIView):
-    """Upload a document to a firm."""
-    serializer_class = DocumentSerializer
+class EditDocumentView(APIView):
+    """
+    Edit a specific document's title or text.
+    URL: /api/LLM/document/edit/<int:firm_id>/<int:document_number>/
+    """
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, firm_id):
-        firm = get_object_or_404(Firm, id=firm_id)
-        serializer = DocumentSerializer(data=request.data)
+    def put(self, request, firm_id, document_number):
+        document = get_object_or_404(Document, firm__id=firm_id, document_number=document_number)
+        serializer = DocumentSerializer(document, data=request.data, partial=True)
 
         if serializer.is_valid():
-            serializer.save(user=request.user, firm=firm)
-            return Response({"message": "Document created successfully!", "data": serializer.data}, status=status.HTTP_201_CREATED)
+            serializer.save()
+            return Response({
+                "message": "Document updated successfully!",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class DocumentDeleteView(generics.DestroyAPIView):
@@ -234,7 +238,7 @@ class DocumentDeleteView(generics.DestroyAPIView):
 
     def delete(self, request, firm_id, document_number):
         document = get_object_or_404(
-            Document, firm=firm_id, document_number=document_number, user=request.user)
+            Document, firm=firm_id, document_number=document_number)
         document.delete()
         return Response({"message": "Document deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
 
@@ -258,6 +262,22 @@ class ListFirmDocumentsView(generics.ListAPIView):
             "firm_name": firm.name,
             "documents": serializer.data
         })
+        
+class GetSingleDocumentView(APIView):
+    """
+    Retrieve a specific document by firm_id and document_number.
+    URL: /api/LLM/document/<int:firm_id>/<int:document_number>/
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, firm_id, document_number):
+        document = get_object_or_404(Document, firm__id=firm_id, document_number=document_number)
+        serializer = DocumentSerializer(document)
+        return Response({
+            "firm_id": firm_id,
+            "document_number": document_number,
+            "document": serializer.data
+        }, status=status.HTTP_200_OK)
 
 
 class ListFirmInteractionsView(generics.ListAPIView):
@@ -297,21 +317,108 @@ class ListFirmsView(generics.ListAPIView):
         return Response({"firms": serializer.data})
 
 
-class UpdateMainDocumentView(APIView):
+class EditMainDocumentAIView(generics.CreateAPIView):
+    """
+    Incorporates selected pitch ideas into the firm's business plan.
+
+    URL: /api/LLM/EditMain/<int:firm_id>/
+
+    Expected JSON payload:
+    {
+        "selected_messages": [
+            "User: ...",
+            "AI: ...",
+            "User: ...",
+            ...
+        ]
+    }
+
+    The view builds a system prompt using the current plan (if available) and the selected messages,
+    sends it to OpenAI's chat completions endpoint, and then updates (or creates) the firm's MainDocument.
+    """
     permission_classes = [IsAuthenticated]
 
     def post(self, request, firm_id):
+        selected_messages = request.data.get("selected_messages", [])
+        if not selected_messages:
+            return Response({"error": "selected_messages cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Retrieve the firm and its current main document (if any)
         firm = get_object_or_404(Firm, id=firm_id)
-        new_text = request.data.get("main_document", "").strip()
+        main_document = MainDocument.objects.filter(firm=firm).first()
+        current_plan = main_document.text if main_document else "No existing plan."
 
-        if not new_text:
-            return Response({"error": "main_document content is required"}, status=status.HTTP_400_BAD_REQUEST)
+        # Construct the system prompt
+        system_prompt = (
+            f"You are an expert business consultant, text analyser and technical text writer. {get_prompt_file("GeneratePlan.txt")}\n\n"
+            f"Original plan {current_plan}"
+        )
+        pitch_text = "\n".join(selected_messages)
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Update the plan using these pitch ideas:\n\n{pitch_text}"}
+        ]
 
-        firm.main_document = new_text
-        firm.save()
-        return Response({"message": "Main document updated successfully.", "main_document": firm.main_document})
+        try:
+            response = openai_client.chat.completions.create(
+                model=GPT_MODEL,
+                messages=messages,
+                temperature=0.1
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+        updated_plan = response.choices[0].message.content.strip()
 
+        # Save the updated plan into the firm's main document (update or create)
+        if main_document:
+            main_document.text = updated_plan
+            main_document.save()
+        else:
+            MainDocument.objects.create(firm=firm, text=updated_plan)
+
+        return Response({"updated_plan": updated_plan}, status=status.HTTP_200_OK)
+
+class AddNewDoc(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, firm_id):
+        selected_messages = request.data.get("selected_messages", [])
+        if not selected_messages:
+            return Response({"error": "selected_messages cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Retrieve the firm
+        firm = get_object_or_404(Firm, id=firm_id)
+
+        # Construct the system prompt
+        system_prompt = (
+            f"You are an expert message analyser and official document writer. {get_prompt_file("extradocPrompt")}"
+        )
+        pitch_text = "\n".join(selected_messages)
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"Update the plan using these pitch ideas:\n\n{pitch_text}"}
+        ]
+
+        try:
+            response = openai_client.chat.completions.create(
+                model=GPT_MODEL,
+                messages=messages,
+                temperature=0.5
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        newDoc = response.choices[0].message.content.strip()
+
+        # Save the updated plan into the firm's main document (update or create)
+        document = Document.objects.create(
+                firm=firm,
+                title=f"AI Response for {firm.name}",
+                text=newDoc
+            )
+
+        return Response({"updated_plan": newDoc}, status=status.HTTP_200_OK)
 
 
 class UpdateFirmDocumentView(APIView):
