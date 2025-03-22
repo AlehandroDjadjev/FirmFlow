@@ -147,7 +147,7 @@ export default function ChatPage() {
   
       if (!res.ok) throw new Error(data.error || "Грешка при създаването.");
   
-      alert("✅ Документът е създаден успешно.");
+      alert("Документът е създаден успешно.");
       setSelectedIndexes([]); // optional: reset selected checkboxes
   
       // Refresh documents list
@@ -165,7 +165,7 @@ export default function ChatPage() {
   
     } catch (err) {
       console.error("Document creation failed:", err);
-      alert("❌ Неуспешно създаване на документ.");
+      alert("Неуспешно създаване на документ.");
     }
   };
 
@@ -183,19 +183,19 @@ export default function ChatPage() {
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={() => router.push("/home")}
-            className="bg-black px-4 py-2 rounded hover:bg-black/70 transition"
+            className="bg-[#0e0e0e]/80 px-4 py-2 rounded hover:[#292929]/70 cursor-pointer"
           >
             Назад
           </button>
-          <h2 className="text-xl font-bold">{firmName}</h2>
+          <h2 className="text-xl font-bold cursor-default">{firmName}</h2>
           <button
             onClick={() => router.push("/rag_add")}
-            className="bg-black px-4 py-2 rounded hover:bg-black/70 transition"
+            className="bg-[#0e0e0e]/80 px-4 py-2 rounded hover:[#292929]/70 cursor-pointer"
           >
             ➕ Добави RAG Контекст
           </button>
         </div>
-
+  
         <div className="overflow-y-auto max-h-[60vh] pr-2">
           {chatHistory.length === 0 ? (
             <p className="text-gray-100">Няма съобщения.</p>
@@ -232,8 +232,8 @@ export default function ChatPage() {
             ))
           )}
         </div>
-
-        <div className="flex mt-6 ">
+  
+        <div className="flex mt-6">
           <input
             type="text"
             className="flex-1 p-4 bg-black/40 text-white border border-white/30 rounded-l-lg focus:outline-none"
@@ -247,103 +247,105 @@ export default function ChatPage() {
             disabled={loading || !inputMessage.trim()}
             className={`px-6 py-4 rounded-r-lg transition-all duration-300 ${
               loading || !inputMessage.trim()
-                ? "bg-black/30 text-white/30 cursor-not-allowed"
-                : "bg-black hover:bg-black/70"
+                ? "bg-[#0e0e0e]/70 text-white/30 cursor-not-allowed"
+                : "bg-[#0e0e0e]/80 hover:[#292929]/70 cursor-pointer"
             }`}
           >
             Изпрати
           </button>
-          <div className="flex mt-4 justify-end">
-            <button
-              onClick={createDocumentFromSelection}
-              disabled={selectedIndexes.length === 0}
-              className={`px-5 py-2 text-sm rounded-md font-medium transition-all ${
-                selectedIndexes.length === 0
-                  ? "bg-white/20 text-white/40 cursor-not-allowed"
-                  : "bg-black text-white hover:bg-black/80"
-              }`}
-            >
-              📄 Създай нов документ от избраното
-            </button>
-</div>
+        </div>
+  
+        <div className="flex mt-4 justify-end">
+          <button
+            onClick={createDocumentFromSelection}
+            disabled={selectedIndexes.length === 0}
+            className={`px-6 py-4 text-sm font-medium rounded-lg transition-all duration-300 w-full sm:w-auto ${
+              selectedIndexes.length === 0
+                ? "bg-white/20 text-white/40 cursor-not-allowed"
+                : "bg-black/90 text-white hover:bg-black/50 cursor-pointer"
+            }`}
+          >
+            Създай нов документ от избраното
+          </button>
         </div>
       </div>
-
+  
       <div className="w-2/7 min-h-screen bg-black text-white p-6 overflow-y-auto border-l border-white/10">
         <div
-    className={`${
-      isExpanded
-        ? "fixed top-0 left-0 w-full h-full z-50 bg-black p-6"
-        : "w-full min-h-screen bg-black text-white p-6 border-l border-white/10"
-    } transition-all duration-300 overflow-y-auto`}
-  >
-    <div className="flex justify-between items-center mb-4">
-      <h2 className="text-2xl font-bold text-center flex-1">{selectedDocTitle}</h2>
-      <div className="flex gap-2">
-        <button
-          onClick={() => {
-            const blob = new Blob([selectedDocContent], { type: "text/plain" });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `firm_${firmId}_document.txt`;
-            link.click();
-          }}
-          title="Изтегли"
-          className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded"
+          className={`${
+            isExpanded
+              ? "fixed top-0 left-0 w-full h-full z-50 bg-black p-6"
+              : "w-full min-h-screen bg-black text-white p-6 border-l border-white/10"
+          } transition-all duration-300 overflow-y-auto`}
         >
-          <FiDownload />
-        </button>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          title={isExpanded ? "Намали" : "Разшири"}
-          className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded"
-        >
-          {isExpanded ? <FiMinimize2 /> : <FiMaximize2 />}
-        </button>
-      </div>
-    </div>
-
-    <div className="mb-4 flex flex-col gap-2">
-      <button
-        onClick={() => handleDocumentSelect("main", "Основен документ")}
-        className="w-full bg-[#111] text-white py-2 rounded hover:bg-[#222] transition"
-      >
-        📘 Покажи основен документ
-      </button>
-
-      <div className="relative">
-        <div className="bg-[#111] rounded overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-2 bg-[#1a1a1a]">
-            <span>📄 Други документи</span>
-            <FiChevronDown />
-          </div>
-          <div className="flex flex-col">
-            {documents.length === 0 && (
-              <span className="text-sm text-gray-400 px-4 py-2">Няма други документи</span>
-            )}
-            {documents.map((doc) => (
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-center flex-1">{selectedDocTitle}</h2>
+            <div className="flex gap-2">
               <button
-                key={doc.document_number}
-                onClick={() => handleDocumentSelect(doc.document_number, doc.title)}
-                className="text-left w-full px-4 py-2 hover:bg-[#2a2a2a] text-sm border-t border-white/10"
+                onClick={() => {
+                  const blob = new Blob([selectedDocContent], { type: "text/plain" });
+                  const link = document.createElement("a");
+                  link.href = URL.createObjectURL(blob);
+                  link.download = `firm_${firmId}_document.txt`;
+                  link.click();
+                }}
+                title="Изтегли"
+                className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded cursor-pointer"
               >
-                {doc.title}
+                <FiDownload />
               </button>
-            ))}
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                title={isExpanded ? "Намали" : "Разшири"}
+                className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded cursor-pointer"
+              >
+                {isExpanded ? <FiMinimize2 /> : <FiMaximize2 />}
+              </button>
+            </div>
           </div>
+  
+          <div className="mb-4 flex flex-col gap-2">
+            <button
+              onClick={() => handleDocumentSelect("main", "Основен документ")}
+              className="w-full bg-[#111] text-white py-2 rounded hover:bg-[#222] transition cursor-pointer"
+            >
+              📘 Покажи основен документ
+            </button>
+  
+            <div className="relative">
+              <div className="bg-[#111] rounded overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-2 bg-[#1a1a1a] cursor-pointer">
+                  <span>📄 Други документи</span>
+                  <FiChevronDown />
+                </div>
+                <div className="flex flex-col">
+                  {documents.length === 0 && (
+                    <span className="text-sm text-gray-400 px-4 py-2">Няма други документи</span>
+                  )}
+                  {documents.map((doc) => (
+                    <button
+                      key={doc.document_number}
+                      onClick={() => handleDocumentSelect(doc.document_number, doc.title)}
+                      className="text-left w-full px-4 py-2 hover:bg-[#2a2a2a] text-sm border-t border-white/10"
+                    >
+                      {doc.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          {selectedDocContent ? (
+            <div className="text-sm whitespace-pre-wrap text-gray-300 leading-relaxed bg-neutral-900 p-4 rounded-lg mt-4">
+              {selectedDocContent}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center mt-10">Няма съдържание.</p>
+          )}
         </div>
-      </div>
-    </div>
-
-    {selectedDocContent ? (
-      <div className="text-sm whitespace-pre-wrap text-gray-300 leading-relaxed bg-neutral-900 p-4 rounded-lg mt-4">
-        {selectedDocContent}
-      </div>
-    ) : (
-      <p className="text-gray-500 text-center mt-10">Няма съдържание.</p>
-    )}
-</div>
       </div>
     </div>
   );
+  
 }
