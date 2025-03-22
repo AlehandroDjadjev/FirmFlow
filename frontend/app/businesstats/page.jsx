@@ -55,6 +55,12 @@ export default function BusinessStatsPage() {
         >
           Продължи
         </button>
+        <button
+          onClick={() => router.back()}
+          className={`mt-6 w-full py-3 text-lg font-medium rounded-lg transition-all duration-300 bg-[#181818] cursor-pointer text-white hover:bg-[#292929]"`}
+        >
+          Назад
+        </button>
       </div>
 
       <div className="w-1/2 min-h-screen flex justify-center items-center px-16 bg-gradient-to-br from-blue-400 to-red-500 to-purple-400 text-white bg-opacity-80 backdrop-blur-lg shadow-lg">
