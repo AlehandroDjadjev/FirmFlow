@@ -231,6 +231,48 @@ export default function ChatPage() {
     );
   };
 
+  const handleDeleteDocument = async (id) => {
+    const token = localStorage.getItem("access");
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/LLM/documents/delete/${firmId}/${id}/`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      if (!res.ok) {
+        // Try to parse error only if status is not 204
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Грешка при изтриването");
+      }
+  
+      alert("Документът е изтрит успешно.");
+  
+      // Refresh documents list
+      const updatedDocs = await fetch(
+        `http://localhost:8000/api/LLM/documents/list/${firmId}/`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const docData = await updatedDocs.json();
+      setDocuments(docData.documents || []);
+      location.reload(true);
+  
+    } catch (err) {
+      console.error("Document deletion failed:", err);
+      alert("Неуспешно изтриване на документ");
+    }
+  };
+  
+
   return (
     <div className="flex min-h-screen">
       <div className="w-5/7 min-h-screen flex flex-col justify-start px-10 py-6 bg-gradient-to-br from-orange-400 to-red-500 text-white">
@@ -392,14 +434,26 @@ export default function ChatPage() {
                     <span className="text-sm text-gray-400 px-4 py-2">Няма други документи</span>
                   )}
                   {documents.map((doc) => (
-                    <button
+                    <div
                       key={doc.document_number}
-                      onClick={() => handleDocumentSelect(doc.document_number, doc.title)}
-                      className="text-left w-full px-4 py-2 hover:bg-[#2a2a2a] text-sm border-t border-white/10"
+                      className="flex justify-between items-center w-full px-4 py-2 hover:bg-[#2a2a2a] text-sm border-t border-white/10"
                     >
-                      {doc.title}
-                    </button>
-                  ))}
+                      <button
+                        onClick={() => handleDocumentSelect(doc.document_number, doc.title)}
+                        className="text-left text-white flex-1"
+                      >
+                        {doc.title}
+                      </button>
+                      <button
+                        key={doc.document_number}
+                        onClick={() => handleDeleteDocument(doc.document_number)}
+                        className="ml-2 text-red-500 hover:text-red-400"
+                        title="Изтрий документа"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))}   
                 </div>
               </div>
             </div>

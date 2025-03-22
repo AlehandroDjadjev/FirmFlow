@@ -234,15 +234,17 @@ class EditDocumentView(APIView):
 
 
 #delete doc
-class DocumentDeleteView(generics.DestroyAPIView):
-    """Delete a document by firm_id and document_number."""
+class DeleteDocumentView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def delete(self, request, firm_id, document_number):
-        document = get_object_or_404(
-            Document, firm=firm_id, document_number=document_number)
-        document.delete()
-        return Response({"message": "Document deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
+    def delete(self, request, firm_id, document_number): 
+        try:
+            doc = Document.objects.get(firm__id=firm_id, document_number=document_number)
+            doc.delete()
+            return Response({"message": "Document deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except Document.DoesNotExist:
+            return Response({"error": "Document not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 #used to list all documents by title then select
 class ListFirmDocumentsView(generics.ListAPIView):
@@ -415,12 +417,16 @@ class AddNewDoc(generics.CreateAPIView):
 
         newDoc = response.choices[0].message.content.strip()
 
-        # Save the updated plan into the firm's main document (update or create)
+        # Count current documents for the firm
+        doc_count = Document.objects.filter(firm=firm).count()
+        new_index = doc_count + 1
+
+        # Create the document with index in title
         document = Document.objects.create(
-                firm=firm,
-                title=f"AI Response for {firm.name}",
-                text=newDoc
-            )
+            firm=firm,
+            title=f"Document {new_index}",
+            text=newDoc
+        )
 
         return Response({"updated_plan": newDoc}, status=status.HTTP_200_OK)
 
