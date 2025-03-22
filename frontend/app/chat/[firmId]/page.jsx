@@ -162,10 +162,64 @@ export default function ChatPage() {
       );
       const docData = await updatedDocs.json();
       setDocuments(docData.documents || []);
+      location.reload(true);
   
     } catch (err) {
       console.error("Document creation failed:", err);
       alert("Неуспешно създаване на документ.");
+    }
+  };
+
+  const updateMainDocument = async () => {
+    const token = localStorage.getItem("access");
+  
+    const selectedMessages = selectedIndexes.map((i) => {
+      const msg = chatHistory[i];
+      return `User: ${msg.user_prompt}\nAI: ${msg.ai_response}`;
+    });
+  
+    if (selectedMessages.length === 0) {
+      alert("Моля, избери съобщения.");
+      return;
+    }
+  
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/LLM/firms/${firmId}/update-main-document/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ selected_messages: selectedMessages }),
+        }
+      );
+  
+      const data = await res.json();
+  
+      if (!res.ok) throw new Error(data.error || "Грешка при създаването.");
+  
+      alert("Планат е обновен успешно.");
+      setSelectedIndexes([]); // optional: reset selected checkboxes
+  
+      // Refresh documents list
+      const updatedDocs = await fetch(
+        `http://localhost:8000/api/LLM/documents/list/${firmId}/`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const docData = await updatedDocs.json();
+      setDocuments(docData.documents || []);
+      location.reload(true);
+  
+    } catch (err) {
+      console.error("Document creation failed:", err);
+      alert("Неуспешно обноваване на план.");
     }
   };
 
@@ -255,7 +309,21 @@ export default function ChatPage() {
           </button>
         </div>
   
-        <div className="flex mt-4 justify-end">
+        <div className="flex mt-4 justify-between">
+          {/* Update Main */}
+          <button
+            onClick={updateMainDocument}
+            disabled={selectedIndexes.length === 0}
+            className={`px-6 py-4 text-sm font-medium rounded-lg transition-all duration-300 w-full sm:w-auto ${
+              selectedIndexes.length === 0
+                ? "bg-white/20 text-white/40 cursor-not-allowed"
+                : "bg-black/90 text-white hover:bg-black/50 cursor-pointer"
+            }`}
+          >
+            Обнови плана с избраното
+          </button>
+
+          {/* Create new doc */}
           <button
             onClick={createDocumentFromSelection}
             disabled={selectedIndexes.length === 0}
@@ -265,9 +333,10 @@ export default function ChatPage() {
                 : "bg-black/90 text-white hover:bg-black/50 cursor-pointer"
             }`}
           >
-            Създай нов документ от избраното
-          </button>
-        </div>
+            Създай нов документ с избраното
+  </button>
+</div>
+
       </div>
   
       <div className="w-2/7 min-h-screen bg-black text-white p-6 overflow-y-auto border-l border-white/10">

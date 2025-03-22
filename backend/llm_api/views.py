@@ -116,7 +116,7 @@ class CreateFirmView(generics.CreateAPIView):
         # big prompt
         messages = [
             {"role": "user",
-             "content": f"Generate a business PLAN for a firm with these details:\n{content} using this template:{get_prompt_file('GeneratePlan.txt')}"}
+             "content": f"Answer in bulgarian. {get_prompt_file('GeneratePlan.txt')}. \n\n Firm details: {content}"}
         ]
 
         # model specifications
@@ -172,7 +172,7 @@ class SubmitPromptView(generics.CreateAPIView):
         # full system prompt - normal sysPrompt file in prompts dir, dataset filtered info,
         # documents context, last 10 interactions, optional if creating a plan doc
         full_system_prompt = (
-            f"{get_prompt_file('systemPrompt.txt')}\n\n"
+            f"Answer in bulgarian. {get_prompt_file('systemPrompt.txt')}\n\n"
             f"### Retrieved Dataset Context ###\n{context_from_chunks}\n\n"
             f"THIS IS THE MAIN DOCUMENT USE IT AT THE CORE OF YOUR USER RESPONSES:{main_document_text}THIS IS THE EXTRA DOCUMENT YOU SHOULD USE FOR CONTEXT:{document_context}\n\n"
             f"### Previous Interactions ###\n{conversation_history}\n\n"
@@ -350,7 +350,7 @@ class EditMainDocumentAIView(generics.CreateAPIView):
 
         # Construct the system prompt
         system_prompt = (
-            f"You are an expert business consultant, text analyser and technical text writer. {get_prompt_file("GeneratePlan.txt")}\n\n"
+            f"Answer in bulgarian. You are an expert business consultant, text analyser and technical text writer. {get_prompt_file("GeneratePlan.txt")}\n\n"
             f"Original plan {current_plan}"
         )
         pitch_text = "\n".join(selected_messages)
@@ -392,12 +392,12 @@ class AddNewDoc(generics.CreateAPIView):
 
         # Construct the system prompt
         system_prompt = (
-            f"You are an expert message analyser and official document writer. {get_prompt_file("extradocPrompt")}"
+            f"Answer in bulgarian. You are an expert official document writer and bussiness consultant. {get_prompt_file("extradocPrompt")}"
         )
         pitch_text = "\n".join(selected_messages)
         messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Update the plan using these pitch ideas:\n\n{pitch_text}"}
+            {"role": "system", "content": system_prompt + "Write the documents using the provided messages"},
+            {"role": "user", "content": pitch_text}
         ]
 
         try:
