@@ -24,16 +24,13 @@ export default function BusinessFuturePage() {
       alert("Текстът не трябва да надвишава 500 думи.");
       return;
     }
-    // Retrieve existing firm data and add future info
     const storedData = localStorage.getItem("firmData");
     let firmData = storedData ? JSON.parse(storedData) : {};
     firmData.future = future.trim();
     localStorage.setItem("firmData", JSON.stringify(firmData));
 
-    // Retrieve the JWT token from localStorage under the key "access"
     const token = localStorage.getItem("access");
 
-    // Send complete firmData to API with the JWT token in headers
     setLoading(true);
     try {
       const response = await apiFetch(
@@ -50,8 +47,6 @@ export default function BusinessFuturePage() {
       if (!response.ok) {
         throw new Error("Грешка при изпращането на данните");
       }
-      // Optionally process the response here if needed
-      // After success, clear localStorage data and redirect to the home page
       localStorage.removeItem("firmData");
       router.push("/home");
     } catch (error) {
@@ -63,7 +58,6 @@ export default function BusinessFuturePage() {
 
   return (
     <div className="flex min-h-screen bg-black">
-      {/* Left Side - Input Section */}
       <div className="w-1/2 min-h-screen flex flex-col justify-center px-20 bg-[#0a0a0a]">
         <h2 className="text-3xl font-semibold text-white mb-6">
           Опиши бъдещето на бизнеса си
@@ -93,7 +87,6 @@ export default function BusinessFuturePage() {
         {message && <p className="mt-4 text-white">{message}</p>}
       </div>
 
-      {/* Right Side - Info Section with Gradient */}
       <div className="w-1/2 min-h-screen flex justify-center items-center px-16 bg-gradient-to-br from-orange-4 00 to-red-600 to-red-400 text-white bg-opacity-80 backdrop-blur-lg shadow-lg">
         <div className="bg-black/90 rounded-lg max-w-lg w-full p-8 shadow-lg">
           <h2 className="text-2xl font-bold mb-4 text-center">

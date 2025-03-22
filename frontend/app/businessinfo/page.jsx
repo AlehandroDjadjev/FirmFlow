@@ -30,19 +30,16 @@ export default function BusinessInfoPage() {
       alert("Описанието не трябва да надвишава 500 думи.");
       return;
     }
-    // Save values to localStorage
     const firmData = {
       name: firmName.trim(),
       description: description.trim(),
     };
     localStorage.setItem("firmData", JSON.stringify(firmData));
-    // Navigate to next page
     router.push("/businesstats");
   };
 
   return (
     <div className="flex min-h-screen bg-black">
-      {/* Left Side - Centered Input and Button */}
       <div className="w-1/2 min-h-screen flex flex-col justify-center px-20 bg-[#0a0a0a]">
         <h2 className="text-3xl font-semibold text-white mb-6">Въведи данни за фирмата</h2>
         <input
@@ -78,7 +75,6 @@ export default function BusinessInfoPage() {
         </button>
       </div>
 
-      {/* Right Side - Left-Aligned Text Content */}
       <div className="w-1/2 min-h-screen flex justify-center items-center px-16 bg-gradient-to-br from-green-400 via-yellow-500 to-yellow-400 text-white bg-opacity-80 backdrop-blur-lg shadow-lg">
         <div className="bg-black/90 rounded-lg max-w-lg w-full p-8 shadow-lg">
           <h2 className="text-2xl font-bold mb-4 text-center">Защо е важно?</h2>

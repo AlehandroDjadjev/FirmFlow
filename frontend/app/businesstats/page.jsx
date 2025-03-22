@@ -21,18 +21,15 @@ export default function BusinessStatsPage() {
       alert("Текстът не трябва да надвишава 500 думи.");
       return;
     }
-    // Retrieve and update firmData with budget info
     const storedData = localStorage.getItem("firmData");
     let firmData = storedData ? JSON.parse(storedData) : {};
     firmData.budget = stats.trim();
     localStorage.setItem("firmData", JSON.stringify(firmData));
-    // Navigate to final page
     router.push("/businessfuture");
   };
 
   return (
     <div className="flex min-h-screen">
-      {/* Left Side - Input */}
       <div className="w-1/2 min-h-screen flex flex-col justify-center px-20 bg-[#0a0a0a]">
         <h2 className="text-3xl font-semibold text-white mb-6">
           Опиши мащаба на бизнеса си (бюджет, екип, печалба и т.н.)
@@ -60,7 +57,6 @@ export default function BusinessStatsPage() {
         </button>
       </div>
 
-      {/* Right Side - Centered Info Box with Gradient Background */}
       <div className="w-1/2 min-h-screen flex justify-center items-center px-16 bg-gradient-to-br from-blue-400 to-red-500 to-purple-400 text-white bg-opacity-80 backdrop-blur-lg shadow-lg">
         <div className="bg-black/90 rounded-lg max-w-lg w-full p-8 shadow-lg">
           <h2 className="text-2xl font-bold mb-4 text-center">

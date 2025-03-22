@@ -58,12 +58,12 @@ export default function RAGUploadPage() {
         throw new Error(data.error || "Грешка при качване.");
       }
 
-      setMessage("✅ Успешно изпратихме информацията в системата.");
+      setMessage("Успешно изпратихме информацията в системата.");
       setRagText("");
       setRagUrl("");
       setRagFile(null);
     } catch (error) {
-      setMessage(`❌ Грешка: ${error.message}`);
+      setMessage(`Грешка: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -71,7 +71,6 @@ export default function RAGUploadPage() {
 
   return (
     <div className="flex min-h-screen bg-black">
-      {/* Left side: Upload Form */}
       <div className="w-1/2 min-h-screen flex flex-col justify-center px-20 bg-[#0a0a0a] space-y-6">
         <h2 className="text-3xl font-semibold text-white">
           Качи информация към RAG модела
@@ -131,7 +130,6 @@ export default function RAGUploadPage() {
         {message && <p className="text-white">{message}</p>}
       </div>
 
-      {/* Right side: Info Section */}
       <div className="w-1/2 min-h-screen flex justify-center items-center px-16 bg-gradient-to-br from-purple-600 to-indigo-800 text-white">
         <div className="bg-black/90 rounded-lg max-w-lg w-full p-8 shadow-lg">
           <h2 className="text-2xl font-bold mb-4 text-center">Какво да качиш?</h2>
