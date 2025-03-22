@@ -57,6 +57,7 @@ export default function ChatPage() {
   }, [firmId]);
 
   const handleDocumentSelect = async (docId, title) => {
+    const token = localStorage.getItem("access");
     if (docId === "main") {
       setSelectedDocContent(mainDocument);
       setSelectedDocTitle("Основен документ");
@@ -114,6 +115,58 @@ export default function ChatPage() {
     link.href = URL.createObjectURL(blob);
     link.download = `context_firm_${firmId}_msg_${index + 1}.txt`;
     link.click();
+  };
+
+  const createDocumentFromSelection = async () => {
+    const token = localStorage.getItem("access");
+  
+    const selectedMessages = selectedIndexes.map((i) => {
+      const msg = chatHistory[i];
+      return `User: ${msg.user_prompt}\nAI: ${msg.ai_response}`;
+    });
+  
+    if (selectedMessages.length === 0) {
+      alert("Моля, избери съобщения.");
+      return;
+    }
+  
+    try {
+      const res = await fetch(
+        `http://localhost:8000/api/LLM/documents/upload/${firmId}/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ selected_messages: selectedMessages }),
+        }
+      );
+  
+      const data = await res.json();
+  
+      if (!res.ok) throw new Error(data.error || "Грешка при създаването.");
+  
+      alert("✅ Документът е създаден успешно.");
+      setSelectedIndexes([]); // optional: reset selected checkboxes
+  
+      // Refresh documents list
+      const updatedDocs = await fetch(
+        `http://localhost:8000/api/LLM/documents/list/${firmId}/`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const docData = await updatedDocs.json();
+      setDocuments(docData.documents || []);
+  
+    } catch (err) {
+      console.error("Document creation failed:", err);
+      alert("❌ Неуспешно създаване на документ.");
+    }
   };
 
   const toggleCheckbox = (index) => {
@@ -180,7 +233,7 @@ export default function ChatPage() {
           )}
         </div>
 
-        <div className="flex mt-6">
+        <div className="flex mt-6 ">
           <input
             type="text"
             className="flex-1 p-4 bg-black/40 text-white border border-white/30 rounded-l-lg focus:outline-none"
@@ -200,6 +253,19 @@ export default function ChatPage() {
           >
             Изпрати
           </button>
+          <div className="flex mt-4 justify-end">
+            <button
+              onClick={createDocumentFromSelection}
+              disabled={selectedIndexes.length === 0}
+              className={`px-5 py-2 text-sm rounded-md font-medium transition-all ${
+                selectedIndexes.length === 0
+                  ? "bg-white/20 text-white/40 cursor-not-allowed"
+                  : "bg-black text-white hover:bg-black/80"
+              }`}
+            >
+              📄 Създай нов документ от избраното
+            </button>
+</div>
         </div>
       </div>
 
