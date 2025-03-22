@@ -5,6 +5,7 @@ To start clone the repo and then run the project (locally) by:
  -activate the venv with venv\scripts\activate then install your packages with pip install -r requirements.txt 
  -you might have to migrate with python manage.py makemigrations and python manage.py migrate 
  -create .env file with this template:
+ 
       OPENAI_API_KEY = ""
       PINECONE_API_KEY = ""
       PINECONE_ENV = "us-east-1"
