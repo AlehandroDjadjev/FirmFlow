@@ -4,6 +4,14 @@ To start clone the repo and then run the project (locally) by:
  -initializing your virtual environment - open FirmFlow\backend in cmd and run python -m venv venv 
  -activate the venv with venv\scripts\activate then install your packages with pip install -r requirements.txt 
  -you might have to migrate with python manage.py makemigrations and python manage.py migrate 
+ -create .env file with this template:
+      OPENAI_API_KEY = ""
+      PINECONE_API_KEY = ""
+      PINECONE_ENV = "us-east-1"
+      PINECONE_INDEX_NAME = "firmflow-vectordb"
+      PINECONE_EMBEDDING_MODEL = "text-embedding-3-large"
+      GPT_MODEL = "gpt-3.5-turbo"
+      NAMESPACE = "default-namespace"
  -run the backend with python manage.py runserver
 
 -open FirmFlow\frontend in cmd and run npm run dev to start frontend 
