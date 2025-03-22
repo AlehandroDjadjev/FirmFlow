@@ -60,7 +60,7 @@ def query_dataset_chunks(query: str):
               for match in result.matches]
     return chunks
 
-
+#extract txt from filepath of prompt
 def get_prompt_file(path):
     file_path = os.path.join(settings.BASE_DIR, "prompts", path)
     if os.path.exists(file_path):
@@ -69,6 +69,7 @@ def get_prompt_file(path):
     else:
         return Response({"error": "No planPrompt file"}, status=status.HTTP_400_BAD_REQUEST)
 
+#CRUD for firms
 class EditDeleteFirmView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
@@ -89,6 +90,7 @@ class EditDeleteFirmView(APIView):
         firm.delete()
         return Response({"message": "Firm deleted successfully."}, status=status.HTTP_204_NO_CONTENT) 
 
+#Intialize a firm by creating it and making a starting plan document
 class CreateFirmView(generics.CreateAPIView):
     serializer_class = FirmSerializer
     parser_classes = (MultiPartParser, FormParser, JSONParser)
@@ -133,7 +135,7 @@ class CreateFirmView(generics.CreateAPIView):
 
         return Response({"firm_id": firm.id, "plan": plan_text}, status=status.HTTP_201_CREATED)
 
-
+#View for submitting prompts to llm
 class SubmitPromptView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
@@ -149,7 +151,7 @@ class SubmitPromptView(generics.CreateAPIView):
         firm = get_object_or_404(Firm, id=firm_id)
         main_document_text = MainDocument.objects.filter(firm=firm_id)[0].text
 
-        # extra document context - if id is included, include extra document for context
+        # extra document context - if id is included, include extra document for context (not implemented)
         document_context = ""
         if document_id:
             document = get_object_or_404(
@@ -209,7 +211,7 @@ class SubmitPromptView(generics.CreateAPIView):
         return Response({"response": ai_response,"rag_context": context_from_chunks})
 
 
-
+#edit documment (not implemented)
 class EditDocumentView(APIView):
     """
     Edit a specific document's title or text.
@@ -231,7 +233,7 @@ class EditDocumentView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
+#delete doc
 class DocumentDeleteView(generics.DestroyAPIView):
     """Delete a document by firm_id and document_number."""
     permission_classes = [IsAuthenticated]
@@ -242,7 +244,7 @@ class DocumentDeleteView(generics.DestroyAPIView):
         document.delete()
         return Response({"message": "Document deleted successfully!"}, status=status.HTTP_204_NO_CONTENT)
 
-
+#used to list all documents by title then select
 class ListFirmDocumentsView(generics.ListAPIView):
     """Lists all documents for a specific firm."""
     serializer_class = DocumentSerializer
@@ -262,7 +264,7 @@ class ListFirmDocumentsView(generics.ListAPIView):
             "firm_name": firm.name,
             "documents": serializer.data
         })
-        
+
 class GetSingleDocumentView(APIView):
     """
     Retrieve a specific document by firm_id and document_number.
@@ -280,6 +282,7 @@ class GetSingleDocumentView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+#list all interactions (prompt + responce) with a firm
 class ListFirmInteractionsView(generics.ListAPIView):
     """Lists all AI interactions for a specific firm."""
     serializer_class = AIInteractionSerializer
@@ -300,7 +303,7 @@ class ListFirmInteractionsView(generics.ListAPIView):
             "interactions": serializer.data
         })
 
-
+#list all firms
 class ListFirmsView(generics.ListAPIView):
     """Lists all firms"""
     serializer_class = FirmSerializer
@@ -317,6 +320,7 @@ class ListFirmsView(generics.ListAPIView):
         return Response({"firms": serializer.data})
 
 
+#edit main (plan) document
 class EditMainDocumentAIView(generics.CreateAPIView):
     """
     Incorporates selected pitch ideas into the firm's business plan.
@@ -379,6 +383,7 @@ class EditMainDocumentAIView(generics.CreateAPIView):
 
         return Response({"updated_plan": updated_plan}, status=status.HTTP_200_OK)
 
+#create a new document with user's selected messages
 class AddNewDoc(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
@@ -391,12 +396,11 @@ class AddNewDoc(generics.CreateAPIView):
         firm = get_object_or_404(Firm, id=firm_id)
 
         # Construct the system prompt
-        system_prompt = (
-            f"Answer in bulgarian. You are an expert official document writer and bussiness consultant. {get_prompt_file("extradocPrompt")}"
-        )
+        system_prompt = get_prompt_file("extradocPrompt")
+        
         pitch_text = "\n".join(selected_messages)
         messages = [
-            {"role": "system", "content": system_prompt + "Write the documents using the provided messages"},
+            {"role": "system", "content": f"{system_prompt} \n Write the documents using the provided messages"},
             {"role": "user", "content": pitch_text}
         ]
 
@@ -404,7 +408,7 @@ class AddNewDoc(generics.CreateAPIView):
             response = openai_client.chat.completions.create(
                 model=GPT_MODEL,
                 messages=messages,
-                temperature=0.5
+                temperature=0.3
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -421,6 +425,7 @@ class AddNewDoc(generics.CreateAPIView):
         return Response({"updated_plan": newDoc}, status=status.HTTP_200_OK)
 
 
+#Update firm document based on selected interactions
 class UpdateFirmDocumentView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -458,7 +463,7 @@ class GetFirm(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     
-
+#Upload to RAG
 class RAGUploadView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     permission_classes = [IsAuthenticated]

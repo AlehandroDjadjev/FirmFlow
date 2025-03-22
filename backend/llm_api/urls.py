@@ -5,14 +5,7 @@ from .views import (
  UpdateFirmDocumentView, ListFirmInteractionsView, EditMainDocumentAIView, RAGUploadView,  GetFirm,
     GetMainDocumentView, EditDeleteFirmView ,EditDocumentView,GetSingleDocumentView,
 )
-# intiates a request with the llm, a firm id is included so the chat can be assosiated with a firm
-# creates a firm and a main plan documents assosiated with it
-# edits the main document of a firm
-# lists all firms
-# uploades an extra document
-# deletes and extra document
-# updates and extra document
-# lists extra documents
+#Most document interactions haven't been impleneted
 
 urlpatterns = [
     path("submit/<int:firm_id>/", SubmitPromptView.as_view(), name="submit_prompt"),
