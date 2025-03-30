@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import  apiFetch  from "@/app/apifetch";
+import apiFetch from "@/app/apifetch";
 
 export default function HomePage() {
   const [firms, setFirms] = useState([]);
@@ -46,9 +46,14 @@ export default function HomePage() {
         <h1 className="absolute left-1/2 transform -translate-x-1/2 text-2xl font-semibold">
           FirmFlow
         </h1>
-        <div className="w-16" />
+        <button
+          onClick={() => router.push("/profile")}
+          className="py-2 px-4 bg-[#1a1a1a]/60 rounded-lg hover:bg-[#292929]/60 transition cursor-pointer absolute right-6 top-4"
+        >
+          Профил
+        </button>
       </div>
-  
+
       <div className="w-full flex flex-col items-center mt-24 space-y-6 ">
         <motion.div
           className="bg-[#1a1a1a]/50 p-6 rounded-xl w-[400px] text-center shadow-lg"
@@ -60,7 +65,7 @@ export default function HomePage() {
           <p className="text-gray-400">Фирми в системата: {firms.length}</p>
           <p className="text-gray-400">Анализирани проекти: 120+</p>
         </motion.div>
-  
+
         <motion.div
           className="bg-[#121212]/70 backdrop-blur-md p-8 rounded-xl shadow-lg flex flex-col items-center w-[400px]"
           initial={{ opacity: 0, y: 20 }}
@@ -68,16 +73,14 @@ export default function HomePage() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-lg font-semibold mb-4">Изберете фирма:</h2>
-  
-          {/* New Firm Button with similar styling to select */}
+
           <button
             onClick={() => router.push("/businessinfo")}
             className="w-full p-3 bg-[#1a1a1a]/70 text-white text-lg rounded-lg hover:bg-[#333333]/70 transition cursor-pointer mb-4"
           >
             Нова фирма
           </button>
-  
-          {/* Dropdown Selection */}
+
           <select
             className="w-full p-3 rounded-lg bg-[#1a1a1a] text-white text-lg focus:outline-none cursor-pointer appearance-none"
             value={selectedFirm || ""}
@@ -109,8 +112,7 @@ export default function HomePage() {
             Влез
           </button>
         </motion.div>
-  
-        {/* Button to Go Back to Hero Page */}
+
         <motion.button
           onClick={() => router.push("/")}
           className="mt-4 px-6 py-3 bg-[#1a1a1a]/70 rounded-lg text-lg font-semibold hover:bg-[#292929]/70 transition cursor-pointer"
@@ -123,5 +125,4 @@ export default function HomePage() {
       </div>
     </div>
   );  
-  
 }
