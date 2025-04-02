@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.conf import settings
 from .models import Firm, MainDocument
+from accounts.models import UserProfile
+from accounts.serializers import UserProfileSerializer
 from .serializers import FirmSerializer
 from openai import OpenAI
 import os
@@ -68,6 +70,33 @@ def get_prompt_file(path):
             return file.read()
     else:
         return Response({"error": "No planPrompt file"}, status=status.HTTP_400_BAD_REQUEST)
+    
+class FirmListView(generics.ListAPIView):
+    serializer_class = FirmSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Retrieve all firms"""    
+        return Firm.objects.all().order_by("-created_at")
+
+    def list(self, request, *args, **kwargs):
+        """Customize response format"""
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"firms": serializer.data})
+    
+class UserProfileDetailView(generics.RetrieveAPIView):
+    def get(self, request, firm_id):
+        firma = Firm.objects.filter(id = firm_id)
+        user = firma.first().user
+        detailedUser = UserProfile.objects.filter(user = user).first()
+        serializer = UserProfileSerializer(detailedUser, data=request.data, partial=True)
+        if(serializer.is_valid()):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
 
 #CRUD for firms
 class EditDeleteFirmView(APIView):
@@ -107,7 +136,7 @@ class CreateFirmView(generics.CreateAPIView):
         if not all([firm_name]):
             return Response({"error": "Firm name is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        firm = Firm.objects.create(name=firm_name,description = firm_notes)
+        firm = Firm.objects.create(name=firm_name,description = firm_notes, user = request.user)
 
         # Create a single string for all fields
         content = (
@@ -320,7 +349,6 @@ class ListFirmsView(generics.ListAPIView):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response({"firms": serializer.data})
-
 
 #edit main (plan) document
 class EditMainDocumentAIView(generics.CreateAPIView):

@@ -3,12 +3,14 @@ from .views import (
     CreateFirmView, SubmitPromptView, AddNewDoc,
     DeleteDocumentView, ListFirmDocumentsView, ListFirmsView,
  UpdateFirmDocumentView, ListFirmInteractionsView, EditMainDocumentAIView, RAGUploadView,  GetFirm,
-    GetMainDocumentView, EditDeleteFirmView ,EditDocumentView,GetSingleDocumentView,
+    GetMainDocumentView, EditDeleteFirmView ,EditDocumentView,GetSingleDocumentView,FirmListView,UserProfileDetailView
 )
 #Most document interactions haven't been impleneted
 
 urlpatterns = [
     path("submit/<int:firm_id>/", SubmitPromptView.as_view(), name="submit_prompt"),
+    path('firms/all/', FirmListView.as_view(), name='firms_all'),
+    path('profile/<int:firm_id>/', UserProfileDetailView.as_view(), name='user_profile_detail'),
     path("firms/initialize/", CreateFirmView.as_view(), name="create_firm"),
     path("interactions/<int:firm_id>/",
          ListFirmInteractionsView.as_view(), name="create_firm"),

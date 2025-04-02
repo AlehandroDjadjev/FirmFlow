@@ -120,9 +120,7 @@ export default function Hero() {
               text: "Качвайте документи и получавайте персонализирани анализи.",
             },
             {
-              icon: (
-                <QuestionMarkCircleIcon className="h-12 w-12 cursor-defult text-gray-500" />
-              ),
+              icon: <QuestionMarkCircleIcon className="h-12 w-12 cursor-defult text-gray-500" />,
               text: "Задавайте въпроси и получавайте експертни отговори в реално време.",
             },
             {
@@ -158,6 +156,13 @@ export default function Hero() {
               >
                 Виж всички проекти!
               </button>
+              {/* 🚀 NEW: The Flow button */}
+              <button
+                onClick={() => router.push("/FlowPage")}
+                className="bg-[#181818]/80 cursor-pointer hover:bg-[#292929]/70 px-6 py-3 rounded-lg text-white transition-all duration-300"
+              >
+                The Flow
+              </button>
             </>
           ) : (
             <>
@@ -172,6 +177,13 @@ export default function Hero() {
                 disabled
               >
                 Виж всички проекти!
+              </button>
+              {/* The Flow button also disabled if not authenticated */}
+              <button
+                className="bg-[#292929] px-6 py-3 rounded-lg text-gray-500 cursor-not-allowed"
+                disabled
+              >
+                The Flow
               </button>
             </>
           )}
