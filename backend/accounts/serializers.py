@@ -6,6 +6,7 @@ from .models import UserProfile
 class UserProfileSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
     profile_picture = serializers.ImageField(required=False, allow_null=True)
+    social_links = serializers.CharField(required=False, allow_blank=True, allow_null=True)  # Allow blank or null value
 
     class Meta:
         model = UserProfile 
