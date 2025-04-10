@@ -76,7 +76,8 @@ class FirmListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Retrieve all firms"""    
+        """Retrieve all firms""" 
+        print("User:", self.request.user)   
         return Firm.objects.all().order_by("-created_at")
 
     def list(self, request, *args, **kwargs):
@@ -342,7 +343,7 @@ class ListFirmsView(generics.ListAPIView):
 
     def get_queryset(self):
         """Retrieve all firms"""
-        return Firm.objects.all().order_by("-created_at")
+        return Firm.objects.filter(user=self.request.user).order_by("-created_at")
 
     def list(self, request, *args, **kwargs):
         """Customize response format"""

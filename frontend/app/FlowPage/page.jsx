@@ -12,7 +12,7 @@ export default function FlowPage() {
       async function fetchFirms() {
         try {
           const token = localStorage.getItem("access");
-          const res = await apiFetch("http://localhost:8000/api/LLM/firms/all/", {
+          const res = await apiFetch("http://localhost:8000/api/LLM/flow/firm/list/", {
             headers: {
               Authorization: token ? `Bearer ${token}` : "",
             },
