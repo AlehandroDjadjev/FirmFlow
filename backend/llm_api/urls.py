@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     CreateFirmView, SubmitPromptView, AddNewDoc,
-    DeleteDocumentView, ListFirmDocumentsView, ListFirmsView,
+    DeleteDocumentView, ListFirmDocumentsView, ListFirmsView, FirmListView,
  UpdateFirmDocumentView, ListFirmInteractionsView, EditMainDocumentAIView, RAGUploadView,  GetFirm,
     GetMainDocumentView, EditDeleteFirmView ,EditDocumentView,GetSingleDocumentView,FirmListView,UserProfileDetailView
 )
@@ -17,6 +17,7 @@ urlpatterns = [
     path("firms/<int:firm_id>/update-main-document/",
          EditMainDocumentAIView.as_view(), name="update_main_document"),
     path("firms/list/", ListFirmsView.as_view(), name="list_firms_view"),
+    path("flow/firm/list/", FirmListView.as_view(), name="flow_list_view"),
     path('document/<int:firm_id>/<int:document_number>/', GetSingleDocumentView.as_view(), name='get_single_document'),
     path("documents/upload/<int:firm_id>/",
          AddNewDoc.as_view(), name="upload_document"),
