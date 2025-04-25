@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import  apiFetch  from "@/app/apifetch";
+import apiFetch from "@/app/apifetch";
 
 export default function RAGUploadPage() {
   const [ragText, setRagText] = useState("");
@@ -122,7 +122,7 @@ export default function RAGUploadPage() {
 
         <button
           onClick={() => router.push("/home")}
-          className="w-full py-3 text-lg font-medium bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all duration-300"
+          className="w-full cursor-pointer py-3 text-lg font-medium bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-all duration-300"
         >
           ⬅️ Назад към началото
         </button>
@@ -132,9 +132,12 @@ export default function RAGUploadPage() {
 
       <div className="w-1/2 min-h-screen flex justify-center items-center px-16 bg-gradient-to-br from-purple-600 to-indigo-800 text-white">
         <div className="bg-black/90 rounded-lg max-w-lg w-full p-8 shadow-lg">
-          <h2 className="text-2xl font-bold mb-4 text-center">Какво да качиш?</h2>
+          <h2 className="text-2xl font-bold mb-4 text-center">
+            Какво да качиш?
+          </h2>
           <p className="text-gray-300 text-center mb-4">
-            Използвай текст, PDF файлове или линкове, за да обучим модела да бъде по-информиран.
+            Използвай текст, PDF файлове или линкове, за да обучим модела да
+            бъде по-информиран.
           </p>
           <ul className="list-disc pl-6 space-y-2 text-gray-400 text-lg">
             <li>Маркетингови стратегии</li>

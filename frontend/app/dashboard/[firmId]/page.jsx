@@ -14,7 +14,8 @@ export default function FirmDashboardPage() {
   const [logoFile, setLogoFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("access") : null;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("access") : null;
 
   useEffect(() => {
     if (!firmId || !token) return;
@@ -52,13 +53,16 @@ export default function FirmDashboardPage() {
         formData.append("image", logoFile);
       }
 
-      const res = await fetch(`http://localhost:8000/api/LLM/firm/edit/${firmId}/`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      const res = await fetch(
+        `http://localhost:8000/api/LLM/firm/edit/${firmId}/`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
 
       if (!res.ok) throw new Error("Failed to update firm");
 
@@ -77,12 +81,15 @@ export default function FirmDashboardPage() {
   const deleteFirm = async () => {
     if (!confirm("Сигурен ли си, че искаш да изтриеш фирмата?")) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/LLM/firm/edit/${firmId}/`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await fetch(
+        `http://localhost:8000/api/LLM/firm/edit/${firmId}/`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (res.ok) {
         router.push("/home");
       } else {
@@ -108,7 +115,9 @@ export default function FirmDashboardPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-3xl font-bold mb-6 text-center">Настройки на фирмата</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center">
+          Настройки на фирмата
+        </h1>
 
         {firm.image && (
           <motion.div
@@ -148,7 +157,9 @@ export default function FirmDashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <label className="block text-sm mb-2 text-gray-400">Име на фирмата</label>
+          <label className="block text-sm mb-2 text-gray-400">
+            Име на фирмата
+          </label>
           {editing ? (
             <input
               name="name"
@@ -176,7 +187,9 @@ export default function FirmDashboardPage() {
               className="w-full p-3 h-24 rounded-lg bg-[#0e0e0e]/70 text-white border border-[#444] focus:ring-2 focus:ring-blue-500"
             />
           ) : (
-            <p className="text-gray-300">{firm.description || "Без описание"}</p>
+            <p className="text-gray-300">
+              {firm.description || "Без описание"}
+            </p>
           )}
         </motion.div>
 
@@ -206,8 +219,10 @@ export default function FirmDashboardPage() {
             <>
               <motion.button
                 onClick={saveChanges}
-                className={`w-full py-2 rounded ${
-                  loading ? "bg-[#444]" : "bg-[#0e0e0e]/70 hover:bg-[#292929]/70"
+                className={`w-full py-2 rounded cursor-pointer ${
+                  loading
+                    ? "bg-[#444]"
+                    : "bg-[#0e0e0e]/70 hover:bg-[#292929]/70"
                 }`}
                 disabled={loading}
                 initial={{ opacity: 0 }}

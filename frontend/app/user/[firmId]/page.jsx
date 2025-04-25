@@ -17,21 +17,24 @@ export default function UserPage() {
         const token = localStorage.getItem("access");
         if (!token) return; // or handle unauthorized state
 
-        const res = await apiFetch(`http://localhost:8000/api/LLM/profile/${firmId}/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await apiFetch(
+          `http://localhost:8000/api/LLM/profile/${firmId}/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         if (!res.ok) {
           throw new Error("Failed to load user data");
         }
         const data = await res.json();
         setProfile(data);
-            apiFetch("http://localhost:8000/api/LLM/firms/list/", {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-              .then(res => res.json())
-              .then(data => setFirms(data.firms || []));
+        apiFetch("http://localhost:8000/api/LLM/firms/list/", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then((res) => res.json())
+          .then((data) => setFirms(data.firms || []));
       } catch (error) {
         console.error(error);
       } finally {
@@ -43,7 +46,9 @@ export default function UserPage() {
   }, [firmId]);
 
   if (loading) {
-    return <div className="min-h-screen bg-black text-white p-6">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-black text-white p-6">Loading...</div>
+    );
   }
 
   if (!profile) {
@@ -85,7 +90,6 @@ export default function UserPage() {
         <div className="mt-6">
           <h2 className="text-xl font-semibold">Фирми:</h2>
           {firms && firms.length > 0 ? (
-
             <ul className="list-disc pl-5 text-gray-300 mt-2">
               {firms.map((firm) => (
                 <li key={firm.id}>{firm.name}</li>
@@ -98,7 +102,7 @@ export default function UserPage() {
 
         <button
           onClick={() => router.push("/home")}
-          className="mt-6 bg-black/60 hover:bg-black/80 py-2 px-4 rounded-lg text-white"
+          className="mt-6 cursor-pointer bg-black/60 hover:bg-black/80 py-2 px-4 rounded-lg text-white"
         >
           Назад
         </button>
