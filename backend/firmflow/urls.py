@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/LLM/', include('llm_api.urls')),
     path('auth/', include('accounts.urls')),
+    path('researcher/',include('web_scraper.urls'))
 ]
 
 if settings.DEBUG:

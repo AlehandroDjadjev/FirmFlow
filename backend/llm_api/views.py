@@ -166,52 +166,69 @@ class CreateFirmView(generics.CreateAPIView):
         return Response({"firm_id": firm.id, "plan": plan_text}, status=status.HTTP_201_CREATED)
 
 #View for submitting prompts to llm
+#View for submitting prompts to llm
 class SubmitPromptView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, firm_id):
         # fields. Prompt is required, save as document is for extra document creation, document id if including an extra document
         user_prompt = request.data.get("prompt", "").strip()
-        save_as_document = request.data.get("save_as_document", False)
+        #save_as_document = request.data.get("save_as_document", False)
         document_id = request.data.get("document_id", None)
+        raw_prompt = request.data.get("raw_prompt", "") # for research, input 'Y'for true. SCRAPED INFO IS SUBMITTED AS THE USER PROMPT
+
+        pathPrompt = request.data.get("pathPrompt",None)#only for raw requests - sysprompt
+        pathPrompt = pathPrompt.strip() if pathPrompt else None #safe strip
+
+        GPTmodel = request.data.get("GPTmodel", "gpt-4") #only for raw requests
+        GPTmodel = GPTmodel.strip() if GPTmodel else None
 
         if not user_prompt:
             return Response({"error": "Prompt cannot be empty"}, status=status.HTTP_400_BAD_REQUEST)
-
+        
         firm = get_object_or_404(Firm, id=firm_id)
-        main_document_text = MainDocument.objects.filter(firm=firm_id)[0].text
 
-        # extra document context - if id is included, include extra document for context (not implemented)
-        document_context = ""
-        if document_id:
-            document = get_object_or_404(
-                Document, firm=firm, document_number=document_id)
-            document_context = f"\n\n### Additional Context from Document '{document.title}' ###\n{document.text}"
-
-        # conversation history for last 10 interactions
-        conversation_history = "\n".join([
-            f"User: {i.user_prompt}\nAI: {i.ai_response}" for i in
-            AIInteraction.objects.filter(
-                firm=firm).order_by("-created_at")[:10]
-        ])
-
-        # chunk the dataset
+         # chunk the dataset
         retrieved_chunks = query_dataset_chunks(user_prompt)
         context_from_chunks = "\n".join([
             f"--- Chunk {i+1} (score: {score:.2f}) ---\n{chunk}" for i, (chunk, score) in enumerate(retrieved_chunks)
         ])
+        
+        if raw_prompt != "Y":
+            main_document_text = MainDocument.objects.filter(firm=firm_id)[0].text
 
-        # full system prompt - normal sysPrompt file in prompts dir, dataset filtered info,
-        # documents context, last 10 interactions, optional if creating a plan doc
-        full_system_prompt = (
-            f"Answer in bulgarian. {get_prompt_file('systemPrompt.txt')}\n\n"
-            f"### Retrieved Dataset Context ###\n{context_from_chunks}\n\n"
-            f"THIS IS THE MAIN DOCUMENT USE IT AT THE CORE OF YOUR USER RESPONSES:{main_document_text}THIS IS THE EXTRA DOCUMENT YOU SHOULD USE FOR CONTEXT:{document_context}\n\n"
-            f"### Previous Interactions ###\n{conversation_history}\n\n"
-            f"###THIS IS CONTEXTUAL INFORMATION FROM THE BULGARIAN FIRM CREATION LAWS CONNECTED WITH THE USER PROMPT WHICH YOU MUST USE TO GIVE ACCURATE DEPICTION OF THE COMPANY STARTUP PROCESS: {query_pinecone(user_prompt)}"
-            f"{get_prompt_file('extradocPrompt') if save_as_document else ''}"
-        )
+            # extra document context - if id is included, include extra document for context (not implemented)
+            document_context = ""
+            if document_id:
+                document = get_object_or_404(
+                    Document, firm=firm, document_number=document_id)
+                document_context = f"\n\n### Additional Context from Document '{document.title}' ###\n{document.text}"
 
+            # conversation history for last 10 interactions
+            conversation_history = "\n".join([
+                f"User: {i.user_prompt}\nAI: {i.ai_response}" for i in
+                AIInteraction.objects.filter(
+                    firm=firm).order_by("-created_at")[:10]
+            ])
+
+           
+
+            # full system prompt - normal sysPrompt file in prompts dir, dataset filtered info,
+            # documents context, last 10 interactions, optional if creating a plan doc
+            full_system_prompt = (
+                f"Answer in bulgarian. {get_prompt_file('systemPrompt.txt')}\n\n"
+                f"### Retrieved Dataset Context ###\n{context_from_chunks}\n\n"
+                f"THIS IS THE MAIN DOCUMENT USE IT AT THE CORE OF YOUR USER RESPONSES:{main_document_text}THIS IS THE EXTRA DOCUMENT YOU SHOULD USE FOR CONTEXT:{document_context}\n\n"
+                f"### Previous Interactions ###\n{conversation_history}\n\n"
+                #f"{get_prompt_file('extradocPrompt') if save_as_document else ''}"
+            )
+        else:
+         #put the all the scraped info as the user prompt
+         full_system_prompt = (
+             f"{pathPrompt}. The content for generating will be provided below:\n\n" #NO PATH USED WITH RAW PROMPTING FOR NOW 
+             #PATH PROMPT IS NOT PATH = ACTUAL SYS PROMPT!!!!!!
+         )
+            
         # user prompt included after chunked data about it
         messages = [
             {"role": "system", "content": full_system_prompt},
@@ -220,7 +237,7 @@ class SubmitPromptView(generics.CreateAPIView):
 
         # gpt model setup
         response = openai_client.chat.completions.create(
-            model="gpt-4",
+            model=GPTmodel,
             messages=messages,
             temperature=0.5
         )
@@ -230,13 +247,13 @@ class SubmitPromptView(generics.CreateAPIView):
             firm=firm, user_prompt=user_prompt, ai_response=ai_response)
 
         # saving if making a new document
-        if save_as_document:
-            document = Document.objects.create(
-                firm=firm,
-                title=f"AI Response for {firm.name}",
-                text=ai_response
-            )
-            return Response({"response": ai_response, "document": document.document_number, "message": "Response saved as document.","rag_context": context_from_chunks})
+        #if save_as_document:
+        #    document = Document.objects.create(
+        #        firm=firm,
+        #       title=f"AI Response for {firm.name}",
+        #        text=ai_response
+        #    )
+        #    return Response({"response": ai_response, "document": document.document_number, "message": "Response saved as document.","rag_context": context_from_chunks})
 
         return Response({"response": ai_response,"rag_context": context_from_chunks})
 
