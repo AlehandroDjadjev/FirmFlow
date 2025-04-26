@@ -50,14 +50,14 @@ export default function FlowPage() {
                 className="cursor-pointer text-blue-400 ml-1"
                 onClick={() => router.push(`/user/${firm.id}`)}
               >
-                {firm.user}
+                {firm.user_name}
               </span>
             </p>
           </div>
         ))}
       </div>
       <button
-        onClick={() => router.push("/home")}
+        onClick={() => router.push("/")}
         className="mt-6 cursor-pointer bg-black/50 hover:bg-black/70 py-2 px-4 rounded-lg"
       >
         Go Home

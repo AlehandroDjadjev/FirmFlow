@@ -83,6 +83,19 @@ export default function UserPage() {
           <p>Име: {profile.first_name || "Няма име"}</p>
           <p>Фамилия: {profile.last_name || "Няма фамилия"}</p>
           <p>Телефон: {profile.phone_number || "Няма телефон"}</p>
+          <p>
+            Имейл:{" "}
+            {profile.email ? (
+              <a
+                href={`mailto:${profile.email}`}
+                className="text-blue-400 hover:underline"
+              >
+                {profile.email}
+              </a>
+            ) : (
+              "Няма имейл"
+            )}
+          </p>
           <p>Социални мрежи: {profile.social_links || "Няма линк"}</p>
           <p className="mt-3">Биография: {profile.bio || "Няма биография"}</p>
         </div>
@@ -101,7 +114,7 @@ export default function UserPage() {
         </div>
 
         <button
-          onClick={() => router.push("/home")}
+          onClick={() => router.push("/FlowPage")}
           className="mt-6 cursor-pointer bg-black/60 hover:bg-black/80 py-2 px-4 rounded-lg text-white"
         >
           Назад

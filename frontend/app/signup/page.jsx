@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import  apiFetch  from "@/app/apifetch";
 
 export default function Signup() {
-  const [formData, setFormData] = useState({ username: "", email: "", password: "" });
+  const [formData, setFormData] = useState({ username: "", email: "", password: "", first_name: "", last_name: "", phone_number: ""});
   const [error, setError] = useState(null);
   const router = useRouter();
 
@@ -56,6 +56,33 @@ export default function Signup() {
             required
           />
           <input
+            type="password"
+            name="password"
+            placeholder="Парола"
+            value={formData.password}
+            onChange={handleChange}
+            className="w-full p-2 mb-3 rounded bg-[#0e0e0e] text-white outline-none"
+            required
+          />
+          <input
+            type="text"
+            name="first_name"
+            placeholder="Първо Име"
+            value={formData.first_name}
+            onChange={handleChange}
+            className="w-full p-2 mb-3 rounded bg-[#0e0e0e] text-white outline-none"
+            required
+          />
+          <input
+            type="text"
+            name="last_name"
+            placeholder="Последно Име"
+            value={formData.last_name}
+            onChange={handleChange}
+            className="w-full p-2 mb-3 rounded bg-[#0e0e0e] text-white outline-none"
+            required
+          />
+          <input
             type="email"
             name="email"
             placeholder="Имейл"
@@ -65,14 +92,15 @@ export default function Signup() {
             required
           />
           <input
-            type="password"
-            name="password"
-            placeholder="Парола"
-            value={formData.password}
+            type="tel"
+            name="phone_number"
+            placeholder="Тел. Номер"
+            value={formData.phone_number}
             onChange={handleChange}
             className="w-full p-2 mb-3 rounded bg-[#0e0e0e] text-white outline-none"
             required
           />
+
 
           <div className="flex justify-center">
             <button

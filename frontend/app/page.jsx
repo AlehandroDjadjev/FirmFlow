@@ -95,7 +95,7 @@ export default function Hero() {
       });
       if (response.ok) {
         localStorage.removeItem("access");
-        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("refresh");
         location.reload(true);
       }
     } catch (error) {}
@@ -145,21 +145,15 @@ export default function Hero() {
           {isAuthenticated ? (
             <>
               <button
-                onClick={() => router.push("/businessinfo")}
-                className="bg-[#181818]/80 cursor-pointer hover:bg-[#292929]/70 px-6 py-3 rounded-lg text-white transition-all duration-300"
+                onClick={() => router.push("/home")}
+                className="bg-[#181818]/80 cursor-pointer hover:bg-[#292929]/70 px-6 py-3 rounded-lg text-white transition-all duration-300 min-w-[180px]"
               >
                 Започнете сега!
-              </button>
-              <button
-                onClick={() => router.push("/home")}
-                className="bg-[#181818]/80 cursor-pointer hover:bg-[#292929]/70 px-6 py-3 rounded-lg text-white transition-all duration-300"
-              >
-                Виж всички проекти!
               </button>
               {/* 🚀 NEW: The Flow button */}
               <button
                 onClick={() => router.push("/FlowPage")}
-                className="bg-[#181818]/80 cursor-pointer hover:bg-[#292929]/70 px-6 py-3 rounded-lg text-white transition-all duration-300"
+                className="bg-[#181818]/80 cursor-pointer hover:bg-[#292929]/70 px-6 py-3 rounded-lg text-white transition-all duration-300 min-w-[180px]"
               >
                 The Flow
               </button>
@@ -167,20 +161,14 @@ export default function Hero() {
           ) : (
             <>
               <button
-                className="bg-[#292929] px-6 py-3 rounded-lg text-gray-500 cursor-not-allowed"
+                className="bg-[#292929] px-6 py-3 rounded-lg text-gray-500 cursor-not-allowed min-w-[180px]"
                 disabled
               >
                 Започнете сега!
               </button>
-              <button
-                className="bg-[#292929] px-6 py-3 rounded-lg text-gray-500 cursor-not-allowed"
-                disabled
-              >
-                Виж всички проекти!
-              </button>
               {/* The Flow button also disabled if not authenticated */}
               <button
-                className="bg-[#292929] px-6 py-3 rounded-lg text-gray-500 cursor-not-allowed"
+                className="bg-[#292929] px-6 py-3 rounded-lg text-gray-500 cursor-not-allowed min-w-[180px]"
                 disabled
               >
                 The Flow

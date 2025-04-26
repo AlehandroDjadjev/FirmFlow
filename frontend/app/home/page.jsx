@@ -207,18 +207,6 @@ export default function HomePage() {
             Влез
           </button>
         </motion.div>
-
-        {/* Home Shortcut */}
-        <motion.button
-          onClick={() => router.push("/")}
-          className="cursor-pointer mt-6 text-sm text-gray-300 hover:text-white transition flex items-center gap-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          <FiArrowLeft />
-          Назад към началото
-        </motion.button>
       </div>
     </div>
   );

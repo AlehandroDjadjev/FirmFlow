@@ -88,15 +88,16 @@ class FirmListView(generics.ListAPIView):
     
 class UserProfileDetailView(generics.RetrieveAPIView):
     def get(self, request, firm_id):
-        firma = Firm.objects.filter(id = firm_id)
-        user = firma.first().user
-        detailedUser = UserProfile.objects.filter(user = user).first()
-        serializer = UserProfileSerializer(detailedUser, data=request.data, partial=True)
-        if(serializer.is_valid()):
-            serializer.save()
+        try:
+            firma = Firm.objects.get(id=firm_id)
+            user = firma.user
+            detailedUser = UserProfile.objects.get(user=user)
+            serializer = UserProfileSerializer(detailedUser)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+        except Firm.DoesNotExist:
+            return Response({"error": "Фирмата не е намерена."}, status=status.HTTP_404_NOT_FOUND)
+        except UserProfile.DoesNotExist:
+            return Response({"error": "Профилът на потребителя не е намерен."}, status=status.HTTP_404_NOT_FOUND)
 
 
 #CRUD for firms
