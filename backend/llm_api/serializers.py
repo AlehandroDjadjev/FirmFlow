@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import Firm, MainDocument, AIInteraction, Document
 
 class FirmSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.username', read_only=True)
+    
     class Meta:
         model = Firm
         fields = "__all__"
