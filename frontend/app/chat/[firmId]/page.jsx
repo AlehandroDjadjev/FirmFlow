@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { HiOutlineDocumentAdd } from "react-icons/hi";
 import { useRouter, useParams } from "next/navigation";
 import {
   FiMaximize2,
@@ -24,11 +25,28 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [documents, setDocuments] = useState([]);
+  const [currentDocNumber, setCurrentDocNumber] = useState(null);
   const [selectedDocContent, setSelectedDocContent] = useState("");
   const [selectedDocTitle, setSelectedDocTitle] = useState("Основен документ");
   const [mainDocument, setMainDocument] = useState("");
+  const [addingDoc, setAddingDoc] = useState(false);
+  const [inserting, setInserting] = useState(false);
+  const [insertText, setInsertText] = useState("");
+  const [insertMsgs, setInsertMsgs] = useState([]);
+  const [insertPicker, setInsertPicker] = useState(false);
+  const [newDocText, setNewDocText] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [editedText, setEditedText] = useState("");
+  const [editedDocId, setEditedDocId] = useState(null);
+  const [newDocTitle, setNewDocTitle] = useState("");
+  const [pickedMsgs, setPickedMsgs] = useState([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [docsOpen, setDocsOpen] = useState(true);
+
   const { firmId } = useParams();
   const router = useRouter();
+
+  // ── Initial data loading ─────────────────────────────────────────────────────
 
   useEffect(() => {
     const token = localStorage.getItem("access");
@@ -39,14 +57,14 @@ export default function ChatPage() {
     })
       .then((res) => res.json())
       .then((data) => setChatHistory(data.interactions || []))
-      .catch((err) => console.error("Chat history error:", err));
+      .catch(console.error);
 
     apiFetch(`http://localhost:8000/api/LLM/firm/${firmId}/`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
       .then((data) => setFirmName(data.name))
-      .catch((err) => console.error("Name fetching error:", err));
+      .catch(console.error);
 
     fetch(`http://localhost:8000/api/LLM/documents/main/${firmId}/`, {
       headers: {
@@ -56,7 +74,7 @@ export default function ChatPage() {
     })
       .then((res) => res.json())
       .then((data) => setMainDocument(data.main_document || ""))
-      .catch((err) => console.error("Main doc error:", err));
+      .catch(console.error);
 
     fetch(`http://localhost:8000/api/LLM/documents/list/${firmId}/`, {
       headers: {
@@ -65,50 +83,30 @@ export default function ChatPage() {
       },
     })
       .then((res) => res.json())
-      .then((data) => setDocuments(data.documents || []));
+      .then((data) => setDocuments(data.documents || []))
+      .catch(console.error);
   }, [firmId]);
-
-  const handleDocumentSelect = async (docId, title) => {
-    const token = localStorage.getItem("access");
-    if (docId === "main") {
-      setSelectedDocContent(mainDocument);
-      setSelectedDocTitle("Основен документ");
-    } else {
-      const res = await fetch(
-        `http://localhost:8000/api/LLM/document/${firmId}/${docId}/`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const data = await res.json();
-      setSelectedDocContent(data.document.text || "");
-      setSelectedDocTitle(title);
-    }
-  };
 
   useEffect(() => {
     if (mainDocument) setSelectedDocContent(mainDocument);
   }, [mainDocument]);
+
+  // ── Handlers ────────────────────────────────────────────────────────────────
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
     setLoading(true);
     try {
       const token = localStorage.getItem("access");
-      const res = await fetch(
-        `http://localhost:8000/api/LLM/submit/${firmId}/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ prompt: inputMessage.trim() }),
-        }
-      );
-
+      const res = await fetch(`http://localhost:8000/api/LLM/submit/${firmId}/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ prompt: inputMessage.trim() }),
+      });
       if (!res.ok) throw new Error("Грешка при съобщението");
-
       const data = await res.json();
       setChatHistory((prev) => [
         ...prev,
@@ -120,11 +118,127 @@ export default function ChatPage() {
       ]);
       setInputMessage("");
     } catch (err) {
-      console.error("Send Error:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleDocumentSelect = async (docId, title) => {
+    const token = localStorage.getItem("access");
+    setEditing(false);
+    setEditedText("");
+    setEditedDocId(null);
+    setAddingDoc(false);
+    setCurrentDocNumber(docId);
+
+    const url =
+      docId === "main"
+        ? `http://localhost:8000/api/LLM/documents/main/${firmId}/`
+        : `http://localhost:8000/api/LLM/document/${firmId}/${docId}/`;
+
+    const res = await fetch(url, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+
+    if (docId === "main") {
+      setSelectedDocContent(data.main_document || "");
+      setSelectedDocTitle("Основен документ");
+    } else {
+      setSelectedDocContent(data.document.text || "");
+      setSelectedDocTitle(title);
+    }
+  };
+
+  const saveEditedDoc = async () => {
+    if (!editedDocId) return;
+    const token = localStorage.getItem("access");
+    const url =
+      editedDocId === "main"
+        ? `http://localhost:8000/api/LLM/main/update/${firmId}/`
+        : `http://localhost:8000/api/LLM/documents/update/${firmId}/${editedDocId}/`;
+
+    const res = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ text: editedText }),
+    });
+
+    if (!res.ok) {
+      alert("Неуспешно запазване на документа");
+      return;
+    }
+
+    // reload the doc we just edited:
+    await handleDocumentSelect(editedDocId === "main" ? "main" : editedDocId, selectedDocTitle);
+    setEditing(false);
+    setEditedDocId(null);
+    setEditedDocId(editedDocId);
+    setAddingDoc(false);
+    setInserting(false);
+    alert("Запазено успешно");
+  };
+
+  const insertIntoDoc = async () => {
+    if (!insertText.trim() && insertMsgs.length === 0) return;
+  
+    const token = localStorage.getItem("access");
+    if (!token) {
+      alert("Не сте влезли в системата.");
+      return;
+    }
+  
+    //  👉 list of STRINGS, not objects
+    const selected_messages = insertMsgs.map(
+      i => `User: ${chatHistory[i].user_prompt}\nAI: ${chatHistory[i].ai_response}`
+    );
+  
+    const payload = {
+      body: insertText.trim(),
+      ...(selected_messages.length && { selected_messages })
+    };
+  
+    const url =
+      selectedDocTitle === "Основен документ"
+        ? `http://localhost:8000/api/LLM/firms/${firmId}/update-main-document/`
+        : `http://localhost:8000/api/LLM/documents/insert/${firmId}/${currentDocNumber}/`;
+  
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!res.ok) {
+        console.error("Insert-into-doc failed:", await res.text());
+        alert("Неуспешно вмъкване на информация.");
+        return;
+      }
+  
+      const data = await res.json();
+      setSelectedDocContent(data.updated_plan ?? data.text ?? insertText);
+      setInsertText("");
+      setInsertMsgs([]);
+      setInserting(false);
+      alert("Информацията е добавена успешно.");
+    } catch (err) {
+      console.error("Insert-into-doc error:", err);
+      alert("Неуспешно вмъкване на информация.");
+    }
+  };
+  
+
 
   const downloadContext = (contextText, index) => {
     const blob = new Blob([contextText], { type: "text/plain" });
@@ -134,19 +248,8 @@ export default function ChatPage() {
     link.click();
   };
 
-  const createDocumentFromSelection = async () => {
+  const createDocumentFromSelection = async (title, body, messages) => {
     const token = localStorage.getItem("access");
-
-    const selectedMessages = selectedIndexes.map((i) => {
-      const msg = chatHistory[i];
-      return `User: ${msg.user_prompt}\nAI: ${msg.ai_response}`;
-    });
-
-    if (selectedMessages.length === 0) {
-      alert("Моля, избери съобщения.");
-      return;
-    }
-
     try {
       const res = await fetch(
         `http://localhost:8000/api/LLM/documents/upload/${firmId}/`,
@@ -156,17 +259,14 @@ export default function ChatPage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ selected_messages: selectedMessages }),
+          body: JSON.stringify({ title, body, selected_messages: messages }),
         }
       );
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || "Грешка при създаването.");
-
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Грешка при създаването.");
+      }
       alert("Документът е създаден успешно.");
-      setSelectedIndexes([]);
-
       const updatedDocs = await fetch(
         `http://localhost:8000/api/LLM/documents/list/${firmId}/`,
         {
@@ -180,66 +280,9 @@ export default function ChatPage() {
       setDocuments(docData.documents || []);
       location.reload(true);
     } catch (err) {
-      console.error("Document creation failed:", err);
+      console.error(err);
       alert("Неуспешно създаване на документ.");
     }
-  };
-
-  const updateMainDocument = async () => {
-    const token = localStorage.getItem("access");
-
-    const selectedMessages = selectedIndexes.map((i) => {
-      const msg = chatHistory[i];
-      return `User: ${msg.user_prompt}\nAI: ${msg.ai_response}`;
-    });
-
-    if (selectedMessages.length === 0) {
-      alert("Моля, избери съобщения.");
-      return;
-    }
-
-    try {
-      const res = await fetch(
-        `http://localhost:8000/api/LLM/firms/${firmId}/update-main-document/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ selected_messages: selectedMessages }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || "Грешка при създаването.");
-
-      alert("Планат е обновен успешно.");
-      setSelectedIndexes([]);
-
-      const updatedDocs = await fetch(
-        `http://localhost:8000/api/LLM/documents/list/${firmId}/`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const docData = await updatedDocs.json();
-      setDocuments(docData.documents || []);
-      location.reload(true);
-    } catch (err) {
-      console.error("Document creation failed:", err);
-      alert("Неуспешно обноваване на план.");
-    }
-  };
-
-  const toggleCheckbox = (index) => {
-    setSelectedIndexes((prev) =>
-      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
-    );
   };
 
   const handleDeleteDocument = async (id) => {
@@ -249,17 +292,17 @@ export default function ChatPage() {
         `http://localhost:8000/api/LLM/documents/delete/${firmId}/${id}/`,
         {
           method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
-
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Грешка при изтриването");
       }
-
       alert("Документът е изтрит успешно.");
-
       const updatedDocs = await fetch(
         `http://localhost:8000/api/LLM/documents/list/${firmId}/`,
         {
@@ -273,13 +316,14 @@ export default function ChatPage() {
       setDocuments(docData.documents || []);
       location.reload(true);
     } catch (err) {
-      console.error("Document deletion failed:", err);
+      console.error(err);
       alert("Неуспешно изтриване на документ");
     }
   };
 
+
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen">
       {/* Chat area */}
       <div className="w-5/7 min-h-screen flex flex-col justify-start px-10 py-6 bg-gradient-to-br from-orange-400 to-red-500 text-white">
         {/* Header */}
@@ -301,7 +345,7 @@ export default function ChatPage() {
         </div>
 
         {/* Messages */}
-        <div className="overflow-y-auto max-h-[60vh] pr-2">
+        <div className="overflow-y-auto max-h-[75vh] pr-2">
           {chatHistory.length === 0 ? (
             <p className="text-gray-100">Няма съобщения.</p>
           ) : (
@@ -310,12 +354,7 @@ export default function ChatPage() {
                 key={idx}
                 className="mb-6 p-6 rounded-lg bg-white/5 flex gap-4 items-start"
               >
-                <input
-                  type="checkbox"
-                  checked={selectedIndexes.includes(idx)}
-                  onChange={() => toggleCheckbox(idx)}
-                  className="mt-2 h-5 w-5 accent-white cursor-pointer"
-                />
+              
                 <div className="flex-1 flex flex-col gap-2">
                   {/* User bubble */}
                   <div className="bg-neutral-800/15 p-4 rounded-2xl ml-auto max-w-[100%]">
@@ -383,49 +422,24 @@ export default function ChatPage() {
             Изпрати
           </button>
         </div>
-
-        {/* Bulk actions */}
-        <div className="flex mt-4 justify-between gap-4 flex-col sm:flex-row">
-          <button
-            onClick={updateMainDocument}
-            disabled={selectedIndexes.length === 0}
-            className={`px-6 py-4 text-sm font-medium rounded-lg transition-all duration-300 w-full sm:w-auto ${
-              selectedIndexes.length === 0
-                ? "bg-white/20 text-white/40 cursor-not-allowed"
-                : "bg-black/90 text-white hover:bg-black/50 cursor-pointer"
-            }`}
-          >
-            Обнови плана с избраното
-          </button>
-          <button
-            onClick={createDocumentFromSelection}
-            disabled={selectedIndexes.length === 0}
-            className={`px-6 py-4 text-sm font-medium rounded-lg transition-all duration-300 w-full sm:w-auto ${
-              selectedIndexes.length === 0
-                ? "bg-white/20 text-white/40 cursor-not-allowed"
-                : "bg-black/90 text-white hover:bg-black/50 cursor-pointer"
-            }`}
-          >
-            Създай нов документ с избраното
-          </button>
-        </div>
       </div>
-
-      {/* Sidebar */}
-      <div className="w-2/7 min-h-screen bg-black text-white p-6 overflow-y-auto border-l border-white/10">
+      
+      {/*Sidebar*/ }
+      <div className="w-2/7 flex flex-col bg-black text-white border-l border-white/10">
+        {/* Wrapper: fixed when expanded, normal when not */}
         <div
           className={`${
             isExpanded
-              ? "fixed top-0 left-0 w-full h-full z-50 bg-black p-6"
-              : "w-full min-h-screen bg-black text-white p-6 border-l border-white/10"
-          } transition-all duration-300 overflow-y-auto`}
+              ? "fixed inset-0 z-50 bg-black p-6 flex flex-col"
+              : "h-full p-6 flex flex-col"
+          } transition-all duration-300`}
         >
-          {/* Document header */}
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-center flex-1 break-words">
+          {/* ── Header (not scrollable) ── */}
+          <div className="flex justify-between items-center mb-4 shrink-0">
+            <h2 className="text-2xl font-bold flex-1 text-center break-words">
               {selectedDocTitle}
             </h2>
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2">
               <button
                 onClick={() => {
                   const blob = new Blob([selectedDocContent], {
@@ -437,81 +451,348 @@ export default function ChatPage() {
                   link.click();
                 }}
                 title="Изтегли"
-                className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded cursor-pointer flex items-center justify-center"
+                className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded"
               >
                 <FiDownload />
               </button>
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
                 title={isExpanded ? "Намали" : "Разшири"}
-                className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded cursor-pointer flex items-center justify-center"
+                className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded"
               >
                 {isExpanded ? <FiMinimize2 /> : <FiMaximize2 />}
               </button>
             </div>
           </div>
 
-          {/* Document actions */}
-          <div className="mb-4 flex flex-col gap-2">
+          {/* ── Document actions (not scrollable) ── */}
+          <div className="shrink-0 flex flex-col gap-2 mb-4">
             <button
               onClick={() => handleDocumentSelect("main", "Основен документ")}
-              className="w-full bg-[#111] text-white py-2 rounded hover:bg-[#222] transition cursor-pointer flex items-center gap-2 justify-center"
+              className="w-full bg-[#111] py-2 rounded hover:bg-[#222] flex items-center justify-center gap-2"
             >
               <FiBook /> Покажи основен документ
             </button>
 
+            {/* dropdown list */}
             <div className="relative">
-              <div className="bg-[#111] rounded overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-2 bg-[#1a1a1a] cursor-pointer">
+              <div className="bg-[#111] rounded">
+                {/* header row (click-to-toggle) */}
+                <button
+                  onClick={() => setDocsOpen(!docsOpen)}
+                  className="w-full flex items-center justify-between px-4 py-2 bg-[#1a1a1a] hover:bg-[#222] focus:outline-none"
+                >
                   <span className="flex items-center gap-2">
                     <FiFileText /> Други документи
                   </span>
-                  <FiChevronDown />
-                </div>
-                <div className="flex flex-col">
-                  {documents.length === 0 && (
-                    <span className="text-sm text-gray-400 px-4 py-2">
-                      Няма други документи
-                    </span>
-                  )}
-                  {documents.map((doc) => (
-                    <div
-                      key={doc.document_number}
-                      className="flex justify-between items-center w-full px-4 py-2 hover:bg-[#2a2a2a] text-sm border-t border-white/10"
+                  <FiChevronDown
+                    className={`transition-transform duration-200 ${
+                      docsOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* --- content pane --- */}
+                {docsOpen && (
+                  <div className="flex flex-col max-h-72 overflow-y-auto divide-y divide-white/10">
+                    {/*  NEW DOCUMENT button  */}
+                    <button
+                      onClick={() => {
+                        setAddingDoc(true);
+                        setSelectedDocContent("");   // hide old content
+                      }}
+                      className="px-4 py-2 flex items-center gap-2 text-sm hover:bg-[#2a2a2a]"
                     >
-                      <button
-                        onClick={() =>
-                          handleDocumentSelect(doc.document_number, doc.title)
-                        }
-                        className="text-left text-white flex-1 break-words"
-                      >
-                        {doc.title}
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleDeleteDocument(doc.document_number)
-                        }
-                        className="ml-2 text-red-500 hover:text-red-400"
-                        title="Изтрий документа"
-                      >
-                        <FiTrash2 />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                      <FiPlus /> Нов документ
+                    </button>
+
+
+                    {/* Existing documents list */}
+                    {documents.length === 0 ? (
+                      <span className="block text-sm text-gray-400 px-4 py-2">
+                        Няма други документи
+                      </span>
+                    ) : (
+                      documents.map((doc) => (
+                        <div
+                          key={doc.document_number}
+                          className="flex items-center justify-between px-4 py-2 hover:bg-[#2a2a2a] text-sm"
+                        >
+                          <button
+                            onClick={() => {
+                              setAddingDoc(false);                 // exit add mode
+                              handleDocumentSelect(doc.document_number, doc.title);
+                            }}
+                            className="flex-1 text-left break-words"
+                          >
+                            {doc.title}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDocument(doc.document_number)}
+                            className="ml-2 text-red-500 hover:text-red-400"
+                            title="Изтрий документа"
+                          >
+                            <FiTrash2 />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
             </div>
+              {/* ---------- “insert info” button  ---------- */}
+              <button
+                onClick={() => {
+                  setInserting(true);
+                  setAddingDoc(false);
+                  setInsertText("");
+                  setInsertMsgs([]);
+                  setSelectedDocContent("");   // hide viewer
+                  /* any other state you need */
+                }}
+                className="mt-2 w-full bg-[#111] py-2  hover:bg-[#222] flex items-center justify-center gap-2"
+              >
+                  <HiOutlineDocumentAdd className="text-xl" />Вмъкни информация в заредения документ
+              </button>
           </div>
 
-          {selectedDocContent ? (
-            <div className="text-sm whitespace-pre-wrap text-gray-300 leading-relaxed bg-neutral-900 p-4 rounded-lg mt-4">
-              {selectedDocContent}
+
+          {/* ── Scrollable document body ── */}
+          {/* viewer OR “new document” composer -------------------------- */}
+          {/* ── composer OR viewer ───────────────────────────────────────── */}
+          {inserting ? (
+          /* ——— INSERTING PANEL ——— */
+          <div className="flex flex-col gap-6 mt-4 overflow-y-auto">
+            {/* message picker */}
+            <div>
+              <h3 className="text-lg font-semibold mb-2 flex items-center">
+                Избери съобщения
+                <button
+                  onClick={() => setInsertPicker(!insertPicker)}
+                  className="ml-2 p-1 rounded hover:bg-neutral-800"
+                >
+                  <FiChevronDown
+                    className={`transition-transform ${insertPicker ? "rotate-180" : ""}`}
+                  />
+                </button>
+              </h3>
+              {insertPicker && (
+                <div className="max-h-40 overflow-y-auto bg-neutral-900 rounded-lg p-2 space-y-1">
+                  {chatHistory.map((m, i) => (
+                    <label key={i} className="flex items-start gap-2 text-sm cursor-pointer hover:bg-neutral-800 p-1 rounded">
+                      <input
+                        type="checkbox"
+                        checked={insertMsgs.includes(i)}
+                        onChange={() =>
+                          setInsertMsgs(prev =>
+                            prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]
+                          )
+                        }
+                        className="mt-1 accent-white"
+                      />
+                      <span className="break-words">{m.user_prompt}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
-          ) : (
-            <p className="text-gray-500 text-center mt-10">Няма съдържание.</p>
-          )}
+
+            {/* free-text field */}
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Допълнителен текст</h3>
+              <textarea
+                value={insertText}
+                onChange={e => setInsertText(e.target.value)}
+                className="w-full h-40 resize-none p-4 bg-neutral-900 rounded-lg text-sm leading-relaxed focus:outline-none"
+                placeholder="Текст за вмъкване…"
+              />
+            </div>
+
+            {/* submit / cancel */}
+            <div className="flex gap-4">
+              <button
+                onClick={insertIntoDoc}
+                disabled={!insertText.trim() && !insertMsgs.length}
+                className="flex-1 bg-green-600/80 hover:bg-green-600 px-4 py-3 rounded disabled:opacity-40"
+              >
+                Вмъкни
+              </button>
+              <button
+                onClick={() => setInserting(false)}
+                className="flex-1 bg-red-600/80 hover:bg-red-600 px-4 py-3 rounded"
+              >
+                Откажи
+              </button>
+            </div>
+          </div>
+          ) : addingDoc ? (
+            <div className="flex flex-col gap-6 mt-4 overflow-y-auto">
+
+              {/* -------- Title field -------- */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Въведи заглавие</h3>
+                <input
+                  value={newDocTitle}
+                  onChange={(e) => setNewDocTitle(e.target.value)}
+                  placeholder="Заглавие…"
+                  className="w-full p-3 bg-neutral-900 rounded-lg focus:outline-none"
+                />
+              </div>
+
+              {/* -------- Message picker -------- */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2 flex items-center">
+                  Избери съобщения
+                  <button
+                    onClick={() => setPickerOpen(!pickerOpen)}
+                    className="ml-2 p-1 rounded hover:bg-neutral-800"
+                  >
+                    <FiChevronDown
+                      className={`transition-transform ${pickerOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                </h3>
+
+                {pickerOpen && (
+                  <div className="max-h-40 overflow-y-auto bg-neutral-900 rounded-lg p-2 space-y-1">
+                    {chatHistory.length === 0 ? (
+                      <p className="text-sm text-gray-400">Няма съобщения.</p>
+                    ) : (
+                      chatHistory.map((m, i) => (
+                        <label
+                          key={i}
+                          className="flex items-start gap-2 text-sm cursor-pointer hover:bg-neutral-800 p-1 rounded"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={pickedMsgs.includes(i)}
+                            onChange={() =>
+                              setPickedMsgs((prev) =>
+                                prev.includes(i)
+                                  ? prev.filter((x) => x !== i)
+                                  : [...prev, i]
+                              )
+                            }
+                            className="mt-1 accent-white"
+                          />
+                          <span className="break-words">{m.user_prompt}</span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {/* tiny preview of already-confirmed messages */}
+                {pickedMsgs.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {pickedMsgs.map((idx) => (
+                      <span
+                        key={idx}
+                        className="bg-neutral-800 text-xs px-2 py-1 rounded inline-flex items-center gap-1"
+                      >
+                        {chatHistory[idx]?.user_prompt.slice(0, 60) || "..."}
+                        <button
+                          onClick={() =>
+                            setPickedMsgs((prev) => prev.filter((x) => x !== idx))
+                          }
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          <FiTrash2 className="text-[10px]" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* -------- Body text -------- */}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Въведи съдържание</h3>
+                <textarea
+                  value={newDocText}
+                  onChange={(e) => setNewDocText(e.target.value)}
+                  placeholder="Текст на документа…"
+                  className="w-full h-52 resize-none p-4 bg-neutral-900 rounded-lg text-sm leading-relaxed focus:outline-none"
+                />
+              </div>
+
+              {/* -------- Submit -------- */}
+              <button
+                onClick={async () => {
+                  // ---- build payload ----
+                  const selected_messages = pickedMsgs.map(i =>
+                    `User: ${chatHistory[i].user_prompt}\nAI: ${chatHistory[i].ai_response}`
+                  );
+
+                  createDocumentFromSelection(newDocTitle || "Без заглавие",newDocText || "No text",selected_messages)
+
+                  // reset UI
+                  setNewDocTitle("");
+                  setNewDocText("");
+                  setPickedMsgs([]);
+                  setAddingDoc(false);
+                }}
+                disabled={!newDocText.trim() && !pickedMsgs.length}
+                className="w-full bg-green-600/80 hover:bg-green-600 px-4 py-3 rounded text-center disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Запази документа
+              </button>
+            </div>
+          ) :    selectedDocContent && !addingDoc && (
+            <div className="flex-1 overflow-auto mt-4 relative">
+              {editing ? (
+                <textarea
+                  value={editedText}
+                  onChange={(e) => setEditedText(e.target.value)}
+                  className="w-full h-full p-4 bg-neutral-800 rounded-lg text-gray-300 text-sm leading-relaxed font-mono resize-none focus:outline-none"
+                />
+              ) : (
+                <pre className="w-full h-full whitespace-pre-wrap overflow-auto text-gray-300 leading-relaxed font-mono bg-neutral-900 p-4 rounded-lg">
+                  {selectedDocContent}
+                </pre>
+              )}
+              {/* floating buttons unchanged… */}
+              <div className="absolute top-2 right-2 flex gap-2">
+                {editing ? (
+                  <>
+                    <button
+                      onClick={saveEditedDoc}
+                      className="px-3 py-1 bg-green-600 hover:bg-green-500 rounded text-sm"
+                    >
+                      Запази
+                    </button>
+                    <button
+                      onClick={() => setEditing(false)}
+                      className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm"
+                    >
+                      Откажи
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => {
+                      const id =
+                        selectedDocTitle === "Основен документ"
+                          ? "main"
+                          : String(currentDocNumber);
+                      setEditedDocId(id);
+                      setEditedText(selectedDocContent);
+                      setEditing(true);
+                      setAddingDoc(false);
+                      setInserting(false);
+                    }}
+                    className="p-2 bg-neutral-800 hover:bg-neutral-700 rounded"
+                    title="Редактирай"
+                  >
+                    <FiFileText />
+                  </button>
+                )}
+              </div>
+            </div>
+            )}
+          </div>
         </div>
-      </div>
     </div>
   );
 }

@@ -1,11 +1,4 @@
 
-#CRUD
-#session = ResearchSession.objects.create(original_prompt="")
-#session = ResearchSession.objects.get(id=1)
-#session.status = "processed"
-#session.save()
-#session.delete()
-
 import os
 import time
 import django
@@ -16,7 +9,6 @@ import math
 import sys
 
 import json
-
 
 from bs4 import BeautifulSoup
 import re
@@ -373,10 +365,10 @@ def SoloSearch(Search, total_results=15, priority_count=5,non_priority_count = 3
             Your only job is to integrate and organize, not to analyze or rephrase.
 
         """,f"""### TOPIC: {Search} 
-        ### CURRENT RESEARCH DOCUMENT (SKELETON FROM HIGH PRIORITY SOURCES):{"\n\n".join(skeleton)}
+        ### CURRENT RESEARCH DOCUMENT (SKELETON FROM HIGH PRIORITY SOURCES):{0}
         ### NEW LOW PRIORITY SCRAPED CONTENT TO EXPAND WITH:
-        {"\n\n".join(non_prioritySCRAPE)}
-        """, 
+        {1}
+        """.format("\n\n".join(skeleton),"\n\n".join(non_prioritySCRAPE)), 
         "gpt-4o-mini-2024-07-18" #mini is used for formatting
         )
     
@@ -550,14 +542,18 @@ def CheckText(text,topic):
             {text}
 
             ### Low-Scoring Topics That Need Expansion:
-            {"\n".join(f"TOPIC: {name} (score: {score})\n{scrape}" for (name, score), scrape in zip(topics, score_scrape))}
+            {0}
 
             ### Missing Topics to Append:
-            {"\n".join(f"TOPIC: {topic}\n{scrape}" for topic, scrape in zip(topicsU, undescribed_scrape))}
+            {1}
 
             ### Flagged Paragraphs That Need Rephrasing:
-            {"\n".join(f"FLAGGED: {text_snippet}\nREPLACEMENT INFO:\n{scrape}" for (text_snippet, _), scrape in zip(topicsF, flagged_scrape))}
-            """,
+            {2}
+            """.format(
+               "\n".join(f"TOPIC: {name} (score: {score})\n{scrape}" for (name, score), scrape in zip(topics, score_scrape)),
+               "\n".join(f"TOPIC: {topic}\n{scrape}" for topic, scrape in zip(topicsU, undescribed_scrape)),
+               "\n".join(f"FLAGGED: {text_snippet}\nREPLACEMENT INFO:\n{scrape}" for (text_snippet, _), scrape in zip(topicsF, flagged_scrape))
+            ),
             
             #although in some use cases mini is fit, we are inserting at random - main better
             "gpt-4o-2024-08-06" 
@@ -597,8 +593,8 @@ def FormatTextForUser(texts,Input):
         {Input}
 
         ### FINALIZED TOPIC TEXTS TO STRUCTURE INTO A MEGA REPORT:
-        {"\n\n".join(f"## {topic_name}\n{content}" for topic_name, content in texts)}
-        """,
+        {0}
+        """.format("\n\n".join(f"## {topic_name}\n{content}" for topic_name, content in texts)),
         "gpt-4o-2024-08-06"
         )
     print("[TEXTFORMAT] Finished long report")
@@ -790,4 +786,4 @@ def DeepSearch(Input,firm_id,refresh_token):
 
 if __name__ == "__main__":
  testPrompt = "Започване на бизенс с продажба и производство на гмо продукти - как ще се организира и поддържа, рекламира и тн"
- DeepSearch(testPrompt,1,"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc0NTY4NDEzOCwiaWF0IjoxNzQ1NTk3NzM4LCJqdGkiOiJkZDhkOGMwNDg0NGE0NjUwYjljOWMyOWE5Y2EyOWM4MiIsInVzZXJfaWQiOjJ9.sexBbIb0uxxUdzQdr3JvbOHdjz5n4GudsEJwoAUdzFM")
+ DeepSearch(testPrompt,1,"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc0NTc1NDk1MywiaWF0IjoxNzQ1NjY4NTUzLCJqdGkiOiJjODZjMjU0MzM4YTc0MzNhOTc2ODhhZmE2M2ZjOTQzOSIsInVzZXJfaWQiOjF9.OoYkoxGOJsKsz5J2Y4nJ_izggYtYeKXd8AxFXOBvTVk")

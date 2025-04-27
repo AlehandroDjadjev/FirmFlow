@@ -22,6 +22,7 @@ import time
 import json
 import PyPDF2
 import urllib
+import re
 
 load_dotenv()  # this should run BEFORE os.getenv is called
 
@@ -370,31 +371,11 @@ class ListFirmsView(generics.ListAPIView):
 
 #edit main (plan) document
 class EditMainDocumentAIView(generics.CreateAPIView):
-    """
-    Incorporates selected pitch ideas into the firm's business plan.
-
-    URL: /api/LLM/EditMain/<int:firm_id>/
-
-    Expected JSON payload:
-    {
-        "selected_messages": [
-            "User: ...",
-            "AI: ...",
-            "User: ...",
-            ...
-        ]
-    }
-
-    The view builds a system prompt using the current plan (if available) and the selected messages,
-    sends it to OpenAI's chat completions endpoint, and then updates (or creates) the firm's MainDocument.
-    """
     permission_classes = [IsAuthenticated]
 
     def post(self, request, firm_id):
         selected_messages = request.data.get("selected_messages", [])
-        if not selected_messages:
-            return Response({"error": "selected_messages cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
-
+        extra_msg = request.data.get("body","")
         # Retrieve the firm and its current main document (if any)
         firm = get_object_or_404(Firm, id=firm_id)
         main_document = MainDocument.objects.filter(firm=firm).first()
@@ -402,13 +383,12 @@ class EditMainDocumentAIView(generics.CreateAPIView):
 
         # Construct the system prompt
         system_prompt = (
-            f"Answer in bulgarian. You are an expert business consultant, text analyser and technical text writer. {get_prompt_file("GeneratePlan.txt")}\n\n"
-            f"Original plan {current_plan}"
+            f"Answer in bulgarian. You are an expert business consultant, text analyser and technical text writer. {get_prompt_file('updatePlan.txt')}\n\nOriginal plan:\n{current_plan}"
         )
         pitch_text = "\n".join(selected_messages)
         messages = [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Update the plan using these pitch ideas:\n\n{pitch_text}"}
+            {"role": "user", "content": f"Update the plan using these pitch ideas:\n\n{pitch_text}. \n\n Here is some DEFINITIVE user-provided info: {extra_msg}"}
         ]
 
         try:
@@ -430,26 +410,96 @@ class EditMainDocumentAIView(generics.CreateAPIView):
             MainDocument.objects.create(firm=firm, text=updated_plan)
 
         return Response({"updated_plan": updated_plan}, status=status.HTTP_200_OK)
+    
+#edit extra document
+class EditExtranDocumentAIView(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, firm_id, document_number):
+        selected_messages = request.data.get("selected_messages", [])
+        extra_msg         = request.data.get("body", "")
+
+        firm      = get_object_or_404(Firm, id=firm_id)
+        document  = Document.objects.filter(firm=firm,
+                                            document_number=document_number
+                                            ).first()           # ← .first()
+
+        doc_text = document.text if document else "No existing plan."
+
+        system_prompt = (
+            f"Answer in bulgarian. You are an expert business consultant, "
+            f"text analyser and technical text writer. "
+            f"{get_prompt_file('updatePlan.txt')}\n\nOriginal plan:\n{doc_text}"
+        )
+
+        pitch_text = "\n".join(selected_messages)
+
+        messages = [
+            {"role": "system",
+             "content": system_prompt},
+            {"role": "user",
+             "content": (
+                 "Update the plan using these pitch ideas:\n\n"
+                 f"{pitch_text}\n\n"
+                 f"Here is some DEFINITIVE user-provided info: {extra_msg}"
+             )}
+        ]
+
+        try:
+            response = openai_client.chat.completions.create(
+                model=GPT_MODEL,
+                messages=messages,
+                temperature=0.1
+            )
+        except Exception as e:
+            return Response({"error": str(e)},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        updated_plan = response.choices[0].message.content.strip()
+
+        # save / create
+        if document:
+            document.text = updated_plan
+            document.save()
+        else:
+            Document.objects.create(
+                firm=firm,
+                document_number=document_number,
+                text=updated_plan
+            )
+
+        return Response({"updated_plan": updated_plan},
+                        status=status.HTTP_200_OK)
+
+    
 
 #create a new document with user's selected messages
 class AddNewDoc(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, firm_id):
+        title = request.data.get("title","")
+        body = request.data.get("body","")
         selected_messages = request.data.get("selected_messages", [])
-        if not selected_messages:
-            return Response({"error": "selected_messages cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
 
         # Retrieve the firm
         firm = get_object_or_404(Firm, id=firm_id)
 
         # Construct the system prompt
-        system_prompt = get_prompt_file("extradocPrompt")
-        
-        pitch_text = "\n".join(selected_messages)
+        system_prompt = get_prompt_file("extradocPrompt.txt")
+
+        if isinstance(system_prompt, Response):
+          return system_prompt  # clean exit
+    
+        rendered = "\n".join(selected_messages)
+
         messages = [
-            {"role": "system", "content": f"{system_prompt} \n Write the documents using the provided messages"},
-            {"role": "user", "content": pitch_text}
+            {"role": "system", "content": system_prompt},
+            {
+                "role": "user",
+                # simple f-string, no .format()
+                "content": f"#CONTENT: {body}\n\n#MESSAGES\n{rendered}"
+            },
         ]
 
         try:
@@ -463,37 +513,41 @@ class AddNewDoc(generics.CreateAPIView):
 
         newDoc = response.choices[0].message.content.strip()
 
-        # Count current documents for the firm
-        doc_count = Document.objects.filter(firm=firm).count()
-        new_index = doc_count + 1
+
+        base = title.strip()                    
+        same_title = (
+            Document.objects
+                    .filter(
+                        firm=firm,
+                        title__regex=rf'^{re.escape(base)}\d*$' 
+                    )
+                    .count()
+        )
 
         # Create the document with index in title
         document = Document.objects.create(
             firm=firm,
-            title=f"Document {new_index}",
+            title= title if not same_title else f"{title}-{same_title}",
             text=newDoc
         )
 
         return Response({"updated_plan": newDoc}, status=status.HTTP_200_OK)
 
 
-#Update firm document based on selected interactions
+#Update firm document 
 class UpdateFirmDocumentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def patch(self, request, firm_id, document_number):
         firm = get_object_or_404(Firm, id=firm_id)
         document = get_object_or_404(
-            Document, firm=firm, document_number=document_number, user=request.user)
+            Document, firm=firm, document_number=document_number)
 
-        new_title = request.data.get("title", None)
         new_text = request.data.get("text", None)
 
-        if not new_title and not new_text:
-            return Response({"error": "At least one of 'title' or 'text' is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if not new_text:
+            return Response({"error": "At least one of 'text' is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if new_title:
-            document.title = new_title
         if new_text:
             document.text = new_text
 
@@ -503,6 +557,31 @@ class UpdateFirmDocumentView(APIView):
             "document_number": document.document_number,
             "title": document.title,
             "text": document.text
+        }, status=status.HTTP_200_OK)
+    
+
+#Update firm document 
+class UpdateMainDocumentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, firm_id):
+        firm = get_object_or_404(Firm, id=firm_id)
+        main_document = MainDocument.objects.filter(firm=firm).first()
+
+        new_text = request.data.get("text", None)
+
+        if not new_text:
+            return Response({"error": "At least one of 'text' is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if new_text:
+            main_document.text = new_text
+
+        main_document.save()
+        return Response({
+            "message": "Document updated successfully.",
+            "document_number": main_document,
+            "title": main_document,
+            "text": main_document.text
         }, status=status.HTTP_200_OK)
 
     
